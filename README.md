@@ -1,6 +1,4 @@
-# KubeOps
-
-![logo](KubeOps.png)
+![logo](docs/assets/KubeOps.png)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8.svg)](https://golang.org)
