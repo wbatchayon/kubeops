@@ -1,0 +1,73 @@
+# Terraform Variables Example for KubeOps Cluster
+# Copy this file to terraform.tfvars and update with your values
+
+# Proxmox Configuration
+# IMPORTANT: Use environment variables for sensitive values in production
+# export PM_API_URL="https://your-proxmox:8006/api2/json"
+# export PM_API_TOKEN_ID="your-token-id"
+# export PM_API_TOKEN_SECRET="your-token-secret"
+
+proxmox = {
+  url          = "https://proxmox.example.com:8006/api2/json"
+  user         = "root@pam"
+  token_id     = ""  # Set via PM_API_TOKEN_ID env var
+  token_secret = "" # Set via PM_API_TOKEN_SECRET env var
+  node         = "pve"
+}
+
+# Cluster Configuration
+cluster = {
+  name                = "kubeops"
+  kubernetes_version  = "v1.28.0"
+  pod_cidr           = "10.244.0.0/16"
+  service_cidr       = "10.96.0.0/16"
+  cluster_domain     = "cluster.local"
+}
+
+# Control Plane Nodes
+control_plane = {
+  replicas     = 3
+  cpu_cores    = 4
+  memory_mb    = 8192
+  disk_size_gb = 50
+  network_model = "virtio"
+}
+
+# Worker Nodes
+worker = {
+  replicas     = 3
+  cpu_cores    = 4
+  memory_mb    = 8192
+  disk_size_gb = 50
+  network_model = "virtio"
+}
+
+# Network Configuration
+network = {
+  bridge      = "vmbr0"
+  vlan_tag   = 0
+  ip_start   = "192.168.1.100"
+  ip_end     = "192.168.1.200"
+  gateway    = "192.168.1.1"
+  dns_servers = ["1.1.1.1", "8.8.8.8"]
+}
+
+# SSH Configuration
+ssh = {
+  # Add your SSH public keys here
+  authorized_keys = [
+    # "ssh-rsa AAAA..."
+  ]
+  user     = "ubuntu"
+  password = ""  # Use SSH keys instead of password when possible
+}
+
+# Tags
+tags = {
+  project     = "kubeops"
+  environment = "dev"
+  managed_by  = "terraform"
+}
+
+# Environment
+environment = "dev"
