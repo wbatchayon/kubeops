@@ -1,0 +1,75 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+kubeops
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+coverage.out
+coverage.html
+
+# Go workspace file
+go.work
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+.terraform.lock.hcl
+
+# Ansible
+.ansible/
+ansible.cfg.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# kubeconfig
+kubeconfig
+kubeconfig.local
+*.kubeconfig
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/
+vault/
+
+# Logs
+*.log
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Build
+dist/
+build/
+
+# Helm
+/charts/*/charts/
+-e 
+# KubeOps CLI source code
+!cmd/kubeops/
