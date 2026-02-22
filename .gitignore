@@ -73,3 +73,5 @@ build/
 -e 
 # KubeOps CLI source code
 !cmd/kubeops/
+-e 
+!vault/
