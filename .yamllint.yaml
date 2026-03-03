@@ -1,0 +1,32 @@
+# yamllint configuration
+---
+extends: default
+
+ignore:
+  - ".git"
+  - "vendor"
+  - "README.md"
+  - "plans/"
+
+rules:
+  line-length:
+    max: 120
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  trailing-spaces: disable
+  new-line-at-end-of-file: enable
+  document-start: disable
+  brackets: disable
+  braces: disable
+  truthy:
+    allowed-values:
+      - 'true'
+      - 'false'
+      - 'yes'
+      - 'no'
+      - 'on'
+      - 'off'
