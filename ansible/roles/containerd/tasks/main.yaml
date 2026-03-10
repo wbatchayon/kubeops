@@ -1,0 +1,70 @@
+---
+# Containerd role - Install and configure containerd
+
+- name: Install containerd dependencies
+  ansible.builtin.apt:
+    name:
+      - libseccomp2
+      - libgpgme0
+      - libbtrfs0
+      - libdevmapper1
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install containerd dependencies (RHEL)
+  ansible.builtin.dnf:
+    name:
+      - libseccomp
+      - device-mapper-persistent-data
+      - lvm2
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Download containerd tarball
+  ansible.builtin.get_url:
+    url: https://github.com/containerd/containerd/releases/download/v1.7.13/containerd-1.7.13-linux-amd64.tar.gz
+    dest: /tmp/containerd.tar.gz
+    mode: '0644'
+  register: containerd_download
+
+- name: Extract containerd
+  ansible.builtin.unarchive:
+    src: /tmp/containerd.tar.gz
+    dest: /usr/local
+    remote_src: true
+    creates: /usr/local/bin/containerd
+  when: containerd_download.changed
+
+- name: Install containerd systemd service
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+    dest: /etc/systemd/system/containerd.service
+    mode: '0644'
+  register: containerd_service
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: containerd_service.changed
+
+- name: Create containerd config
+  ansible.builtin.copy:
+    dest: /etc/containerd/config.toml
+    content: |
+      version = 2
+
+      [plugins]
+        [plugins."io.containerd.grpc.v1.cri"]
+          sandbox_image = "registry.k8s.io/pause:3.9"
+        [plugins."io.containerd.grpc.v1.cri.containerd.runtimes.runc]
+          runtime_type = "io.containerd.runc.v2"
+          [plugins."io.containerd.grpc.v1.cri.containerd.runtimes.runc.options]
+            SystemdCgroup = true
+    mode: '0644'
+  register: containerd_config
+
+- name: Enable and start containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+    enabled: true

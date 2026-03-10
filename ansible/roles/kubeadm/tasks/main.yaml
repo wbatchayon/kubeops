@@ -1,0 +1,91 @@
+---
+# Kubeadm role - Prepare node for kubeadm
+
+- name: Verify kubeadm installation
+  ansible.builtin.command: kubeadm version
+  register: kubeadm_check
+  changed_when: false
+  failed_when: kubeadm_check.rc != 0
+
+- name: Check if node is already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeconfig_check
+
+- name: Create kubeadm config directory
+  ansible.builtin.file:
+    path: /etc/kubeadm
+    state: directory
+    mode: '0755'
+  when: not kubeconfig_check.stat.exists
+
+- name: Create kubeadm config for control plane
+  ansible.builtin.copy:
+    dest: /etc/kubeadm/kubeadm-config.yaml
+    content: |
+      apiVersion: kubeadm.k8s.io/v1beta3
+      kind: InitConfiguration
+      localAPIEndpoint:
+        advertiseAddress: "{{ ansible_host }}"
+        bindPort: 6443
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        imagePullPolicy: IfNotPresent
+      ---
+      apiVersion: kubeadm.k8s.io/v1beta3
+      kind: ClusterConfiguration
+      networking:
+        podSubnet: "{{ pod_network_cidr }}"
+        serviceSubnet: "{{ service_cidr }}"
+      clusterDomain: "{{ cluster_domain }}"
+      apiServer:
+        certSANs:
+          - "{{ ansible_host }}"
+          - 127.0.0.1
+          - kubernetes
+          - kubernetes.default
+          - kubernetes.default.svc
+          - kubernetes.default.svc.cluster.local
+      controllerManager: {}
+      scheduler: {}
+    mode: '0600'
+  when: 
+    - not kubeconfig_check.stat.exists
+    - kubernetes_role is defined and kubernetes_role == 'control-plane'
+
+- name: Initialize Kubernetes control plane
+  ansible.builtin.command: kubeadm init --config /etc/kubeadm/kubeadm-config.yaml --upload-certs
+  when: 
+    - not kubeconfig_check.stat.exists
+    - kubernetes_role is defined and kubernetes_role == 'control-plane'
+  register: kubeadm_init
+  failed_when: kubeadm_init.rc != 0 and 'already exists' not in kubeadm_init.stdout
+
+- name: Create .kube directory
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Copy admin kubeconfig
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ ansible_user_dir }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  when: kubeconfig_check.stat.exists
+
+- name: Install kubectl bash completion
+  ansible.builtin.shell: |
+    kubectl completion bash > /etc/bash_completion.d/kubectl
+  failed_when: false
+  changed_when: false
+
+- name: Install kubeadm bash completion
+  ansible.builtin.shell: |
+    kubeadm completion bash > /etc/bash_completion.d/kubeadm
+  failed_when: false
+  changed_when: false

@@ -1,0 +1,129 @@
+---
+# Common role - tasks that apply to all nodes
+
+- name: Disable swap
+  ansible.builtin.shell: |
+    swapoff -a
+    sed -i '/swap/d' /etc/fstab
+  when: ansible_swaptotal_mb > 0
+
+- name: Disable selinux (RHEL/CentOS)
+  ansible.builtin.command: setenforce 0
+  when: ansible_os_family == "RedHat"
+  failed_when: false
+
+- name: Set SELinux to permissive (RHEL/CentOS)
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=permissive'
+  when: ansible_os_family == "RedHat"
+
+- name: Load kernel modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Configure sysctl parameters
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+  loop:
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { key: 'net.ipv4.conf.all.forwarding', value: '1' }
+    - { key: 'net.ipv4.conf.default.forwarding', value: '1' }
+    - { key: 'net.ipv4.conf.all.rp_filter', value: '0' }
+    - { key: 'net.ipv4.conf.default.rp_filter', value: '0' }
+    - { key: 'net.ipv4.conf.all.accept_redirects', value: '0' }
+    - { key: 'net.ipv4.conf.default.accept_redirects', value: '0' }
+    - { key: 'net.ipv4.conf.all.send_redirects', value: '0' }
+    - { key: 'net.ipv4.conf.default.send_redirects', value: '0' }
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Install required packages (RHEL)
+  ansible.builtin.dnf:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Add Kubernetes apt repository key (Debian)
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Kubernetes apt repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Kubernetes RPM repository (RHEL)
+  ansible.builtin.yum_repository:
+    name: kubernetes
+    description: Kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    gpgcheck: true
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
+- name: Install Kubernetes binaries
+  ansible.builtin.apt:
+    name:
+      - kubelet={{ kubernetes_version }}
+      - kubeadm={{ kubernetes_version }}
+      - kubectl={{ kubernetes_version }}
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Install Kubernetes binaries (RHEL)
+  ansible.builtin.dnf:
+    name:
+      - kubelet-{{ kubernetes_version }}
+      - kubeadm-{{ kubernetes_version }}
+      - kubectl-{{ kubernetes_version }}
+    state: present
+    disable_excludes: kubernetes
+  when: ansible_os_family == "RedHat"
+
+- name: Hold Kubernetes packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Enable and start kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+    state: started
+    enabled: true
