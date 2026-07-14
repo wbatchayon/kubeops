@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // versionInfo holds version information
@@ -13,6 +13,12 @@ type versionInfo struct {
 	commit  string
 	date    string
 	builtBy string
+}
+
+// String formats the version information for display
+func (v versionInfo) String() string {
+	return fmt.Sprintf("kubeops version %s\ncommit: %s\ndate: %s\nbuilt by: %s",
+		v.version, v.commit, v.date, v.builtBy)
 }
 
 // NewRootCommand creates the root command
@@ -30,13 +36,30 @@ func NewRootCommand(version, commit, date, builtBy string) *cobra.Command {
 		Long: `KubeOps is a CLI tool for deploying and managing Kubernetes clusters
 on Proxmox using Cluster API, Argo CD, Terraform, Ansible, and more.
 
-For more information, visit: https://github.com/kubeops/kubeops`,
-		Version: fmt.Sprintf("kubeops %s (commit: %s, date: %s, built by: %s)",
-			v.version, v.commit, v.date, v.builtBy),
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			// Global persistent pre-run
+For more information, visit: https://github.com/wbatchayon/kubeops`,
+		Version: v.String(),
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Load an explicit config file when --config is set
+			if configFile, _ := cmd.Root().PersistentFlags().GetString("config"); configFile != "" {
+				viper.SetConfigFile(configFile)
+				if err := viper.ReadInConfig(); err != nil {
+					return fmt.Errorf("failed to read config file %s: %w", configFile, err)
+				}
+			}
+
+			// Make --verbose available through viper
+			if err := viper.BindPFlag("verbose", cmd.Root().PersistentFlags().Lookup("verbose")); err != nil {
+				return err
+			}
+			if viper.GetBool("verbose") {
+				if configFile := viper.ConfigFileUsed(); configFile != "" {
+					fmt.Fprintf(cmd.OutOrStdout(), "Using config file: %s\n", configFile)
+				}
+			}
+			return nil
 		},
 	}
+	rootCmd.SetVersionTemplate("{{.Version}}\n")
 
 	// Add subcommands
 	rootCmd.AddCommand(
@@ -143,9 +166,7 @@ func newDestroyCommand() *cobra.Command {
 			force, _ := cmd.Flags().GetBool("force")
 
 			if !force {
-				fmt.Println("Warning: This will destroy the entire cluster!")
-				fmt.Println("Use --force to confirm destruction")
-				return nil
+				return fmt.Errorf("this will destroy the entire cluster; use --force to confirm destruction")
 			}
 
 			fmt.Println("Destroying Kubernetes cluster...")
@@ -277,35 +298,35 @@ func newValidateCommand() *cobra.Command {
 		Short: "Validate cluster configuration",
 		Long:  `Run validation checks on the cluster configuration.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Running validation checks...")
+			out := cmd.OutOrStdout()
+			fmt.Fprintln(out, "Running validation checks...")
 
 			all, _ := cmd.Flags().GetBool("all")
 			terraform, _ := cmd.Flags().GetBool("terraform")
 			ansible, _ := cmd.Flags().GetBool("ansible")
 			kubernetes, _ := cmd.Flags().GetBool("kubernetes")
 
-			if all {
-				fmt.Println("→ Validating Terraform...")
-				fmt.Println("→ Validating Ansible...")
-				fmt.Println("→ Validating Kubernetes manifests...")
-			} else {
-				if terraform {
-					fmt.Println("→ Validating Terraform...")
-				}
-				if ansible {
-					fmt.Println("→ Validating Ansible...")
-				}
-				if kubernetes {
-					fmt.Println("→ Validating Kubernetes manifests...")
-				}
+			// Validate everything when no individual component is selected
+			if !terraform && !ansible && !kubernetes {
+				all = true
 			}
 
-			fmt.Println("✓ Validation complete")
+			if all || terraform {
+				fmt.Fprintln(out, "→ Validating Terraform...")
+			}
+			if all || ansible {
+				fmt.Fprintln(out, "→ Validating Ansible...")
+			}
+			if all || kubernetes {
+				fmt.Fprintln(out, "→ Validating Kubernetes manifests...")
+			}
+
+			fmt.Fprintln(out, "✓ Validation complete")
 			return nil
 		},
 	}
 
-	cmd.Flags().Bool("all", true, "validate all components")
+	cmd.Flags().Bool("all", false, "validate all components")
 	cmd.Flags().Bool("terraform", false, "validate Terraform")
 	cmd.Flags().Bool("ansible", false, "validate Ansible")
 	cmd.Flags().Bool("kubernetes", false, "validate Kubernetes manifests")
@@ -320,11 +341,7 @@ func newVersionCommand(v versionInfo) *cobra.Command {
 		Short: "Show version information",
 		Long:  "Show version information for kubeops",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("kubeops version %s\n", v.version)
-			fmt.Printf("commit: %s\n", v.commit)
-			fmt.Printf("date: %s\n", v.date)
-			fmt.Printf("built by: %s\n", v.builtBy)
-			os.Exit(0)
+			fmt.Fprintln(cmd.OutOrStdout(), v.String())
 		},
 	}
 

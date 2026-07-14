@@ -1,4 +1,4 @@
-module github.com/kubeops/kubeops
+module github.com/wbatchayon/kubeops
 
 go 1.21
 

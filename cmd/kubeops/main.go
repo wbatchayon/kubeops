@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kubeops/kubeops/cmd/kubeops/commands"
 	"github.com/spf13/viper"
+	"github.com/wbatchayon/kubeops/cmd/kubeops/commands"
 )
 
 var (
@@ -16,25 +16,31 @@ var (
 )
 
 func main() {
-	// Initialize viper for configuration
+	// Initialize viper for configuration. The config type is inferred from
+	// the file extension (e.g. kubeops.yaml); setting it explicitly would
+	// make viper treat an extensionless "kubeops" file (such as the binary
+	// itself) as a config file.
 	viper.SetConfigName("kubeops")
-	viper.SetConfigType("yaml")
 	viper.AddConfigPath("$HOME/.kubeops")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	// Create default configuration if not exists
+	// Register default configuration values
+	viper.SetDefault("proxmox.url", "https://proxmox.example.com:8006/api2/json")
+	viper.SetDefault("proxmox.node", "pve")
+	viper.SetDefault("cluster.name", "kubeops")
+	viper.SetDefault("cluster.kubernetes-version", "v1.28.0")
+	viper.SetDefault("cluster.control-plane.replicas", 3)
+	viper.SetDefault("cluster.worker.replicas", 3)
+	viper.SetDefault("vault.address", "http://vault:8200")
+	viper.SetDefault("argo-cd.address", "http://argocd:8080")
+
+	// Read configuration file if present; a missing file is fine, any other
+	// error (e.g. malformed YAML) is fatal
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found, create default
-			viper.SetDefault("proxmox.url", "https://proxmox.example.com:8006/api2/json")
-			viper.SetDefault("proxmox.node", "pve")
-			viper.SetDefault("cluster.name", "kubeops")
-			viper.SetDefault("cluster.kubernetes-version", "v1.28.0")
-			viper.SetDefault("cluster.control-plane.replicas", 3)
-			viper.SetDefault("cluster.worker.replicas", 3)
-			viper.SetDefault("vault.address", "http://vault:8200")
-			viper.SetDefault("argo-cd.address", "http://argocd:8080")
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			fmt.Fprintf(os.Stderr, "Error reading config file: %v\n", err)
+			os.Exit(1)
 		}
 	}
 

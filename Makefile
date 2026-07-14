@@ -51,12 +51,20 @@ test-unit:
 # Run integration tests
 test-integration:
 	@echo "$(BLUE)Running integration tests...$(NC)"
-	$(GO) test -v -tags=integration ./test/integration/...
+	@if [ -d test/integration ]; then \
+		$(GO) test -v -tags=integration ./test/integration/...; \
+	else \
+		echo "$(YELLOW)No integration tests yet (test/integration/ missing), skipping...$(NC)"; \
+	fi
 
 # Run E2E tests
 test-e2e:
 	@echo "$(BLUE)Running E2E tests...$(NC)"
-	$(GO) test -v -tags=e2e ./test/e2e/...
+	@if [ -d test/e2e ]; then \
+		$(GO) test -v -tags=e2e ./test/e2e/...; \
+	else \
+		echo "$(YELLOW)No E2E tests yet (test/e2e/ missing), skipping...$(NC)"; \
+	fi
 
 # Clean build artifacts
 clean:
@@ -179,6 +187,10 @@ ci: check test validate-all build
 
 # Release target
 release: build-all
+	@if [ "$(VERSION)" = "dev" ]; then \
+		echo "$(RED)No git tag found; tag a release (git tag vX.Y.Z) before running make release$(NC)"; \
+		exit 1; \
+	fi
 	@echo "$(GREEN)Creating release for $(VERSION)$(NC)"
 	gh release create $(VERSION) --title $(VERSION) bin/*
 
