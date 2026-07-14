@@ -1,0 +1,59 @@
+# KubeadmControlPlane Definition
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${NAMESPACE}
+spec:
+  replicas: ${CONTROL_PLANE_REPLICAS}
+  version: ${KUBERNETES_VERSION}
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+      kind: ProxmoxMachineTemplate
+      name: ${CLUSTER_NAME}-control-plane
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      apiServer:
+        certSANs:
+          - localhost
+          - 127.0.0.1
+          - "${CLUSTER_NAME}"
+          - "${CLUSTER_NAME}.${CLUSTER_DOMAIN}"
+          # The endpoint clients actually connect to (VIP/LB) must be in the cert
+          - "${CONTROL_PLANE_ENDPOINT_HOST}"
+          - kubernetes
+          - kubernetes.default
+          - kubernetes.default.svc
+          - kubernetes.default.svc.${CLUSTER_DOMAIN}
+        extraArgs:
+          profiling: "false"
+          tls-min-version: VersionTLS12
+      controllerManager:
+        extraArgs:
+          cluster-signing-cert-file: /etc/kubernetes/pki/ca.crt
+          cluster-signing-key-file: /etc/kubernetes/pki/ca.key
+      etcd:
+        local:
+          dataDir: /var/lib/etcd
+      networking:
+        dnsDomain: ${CLUSTER_DOMAIN}
+        podSubnet: ${POD_CIDR}
+        serviceSubnet: ${SERVICE_CIDR}
+    initConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cgroup-driver: systemd
+          eviction-hard: nodefs.available<10%,nodefs.inodesFree<5%,imagefs.available<15%
+    joinConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cgroup-driver: systemd
+          eviction-hard: nodefs.available<10%,nodefs.inodesFree<5%,imagefs.available<15%
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0

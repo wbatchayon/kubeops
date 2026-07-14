@@ -1,0 +1,78 @@
+# Argo CD Project Definition
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kubeops
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: KubeOps Project for Kubernetes cluster management
+  
+  # Source repositories
+  sourceRepos:
+    - https://github.com/wbatchayon/kubeops.git
+    - https://helm.cilium.io
+    - https://argoproj.github.io/argo-helm
+    - https://grafana.github.io/helm-charts
+    - https://prometheus-community.github.io/helm-charts
+  
+  # Destination servers
+  destinations:
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: kubeops
+      server: https://kubernetes.default.svc
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: vault
+      server: https://kubernetes.default.svc
+  
+  # Roles
+  roles:
+    - name: admin
+      description: Admin role for kubeops project
+      groups:
+        - kubeops-admins
+      policies:
+        - p, proj:kubeops:admin, applications, *, kubeops/*, allow
+    - name: deploy
+      description: Deploy role for kubeops project
+      groups: []
+      policies:
+        - p, proj:kubeops:deploy, applications, get, kubeops/*, allow
+        - p, proj:kubeops:deploy, applications, sync, kubeops/*, allow
+    - name: read
+      description: Read-only role
+      groups: []
+      policies:
+        - p, proj:kubeops:read, applications, get, kubeops/*, allow
+  
+  # Cluster resource whitelist: only the cluster-scoped kinds our apps actually deploy
+  clusterResourceWhitelist:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+    - group: ''
+      kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: gateway.networking.k8s.io
+      kind: GatewayClass
+    # Cilium cluster-scoped kinds (CiliumClusterwideNetworkPolicy, CiliumNode, ...)
+    - group: cilium.io
+      kind: '*'
+    # kube-prometheus-stack admission webhooks
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+    - group: apiregistration.k8s.io
+      kind: APIService
+
+  # Orphaned resources monitoring
+  orphanedResources:
+    warn: true

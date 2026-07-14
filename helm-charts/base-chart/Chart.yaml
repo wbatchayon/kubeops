@@ -1,0 +1,23 @@
+# Helm Chart Template for KubeOps Applications
+
+apiVersion: v2
+name: base-chart
+description: A base Helm chart for KubeOps applications
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+keywords:
+  - kubeops
+  - kubernetes
+  - helm
+
+maintainers:
+  - name: KubeOps Team
+    email: team@kubeops.io
+
+dependencies:
+  # Add common dependencies here
+  # - name: common
+  #   version: "1.x.x"
+  #   repository: "https://charts.bitnami.com/bitnami"

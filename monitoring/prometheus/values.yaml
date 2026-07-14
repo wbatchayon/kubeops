@@ -1,0 +1,108 @@
+# Prometheus Stack Helm Chart Values
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    retentionSize: 50GB
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+# Alertmanager configuration
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+# Exporters
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+nodeExporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Pushgateway
+pushgateway:
+  enabled: false
+
+# Grafana configuration
+grafana:
+  # Never rely on the chart default credentials (admin/prom-operator).
+  # Create the secret out-of-band before syncing:
+  #   kubectl -n monitoring create secret generic grafana-admin \
+  #     --from-literal=admin-user=admin --from-literal=admin-password='<strong password>'
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: standard
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'KubeOps'
+          orgId: 1
+          folder: 'KubeOps'
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          options:
+            path: /var/lib/grafana/dashboards/team-kubeops
+
+# Prometheus Operator
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true

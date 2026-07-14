@@ -1,0 +1,133 @@
+# Cilium Helm Chart Values (chart version 1.14.x)
+
+# Cluster name and id (id 0 is invalid; use 1 for a standalone cluster)
+cluster:
+  name: ${CLUSTER_NAME}
+  id: 1
+
+# Network policy enforcement mode
+policyEnforcementMode: default
+
+# Enable Hubble for observability
+# The UI has no built-in authentication: keep it ClusterIP-only (default) and
+# access it via port-forward or an authenticated ingress.
+hubble:
+  enabled: true
+  tls:
+    auto:
+      enabled: true
+      method: helm
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+
+# Operator configuration
+operator:
+  replicas: 1
+  rollOutPods: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Agent configuration
+agent: true
+rollOutCiliumPods: true
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# eBPF datapath tuning
+bpf:
+  # Enable eBPF masquerading once all nodes run kernel >= 5.10
+  masquerade: false
+
+# Full kube-proxy replacement
+kubeProxyReplacement: true
+
+# Enable Gateway API support (Cilium's service-mesh / L7 features)
+gatewayAPI:
+  enabled: true
+
+# IPv4 configuration
+ipv4:
+  enabled: true
+
+# IPv6 configuration
+ipv6:
+  enabled: false
+
+# IPAM configuration
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - ${POD_CIDR}
+    clusterPoolIPv4MaskSize: 24
+
+# Security context capabilities for the Cilium containers
+# Upstream Cilium 1.14 default sets — do not add capabilities without documenting why
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_MODULE
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_MODULE
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+# Transparent encryption of pod-to-pod traffic between nodes
+# (WireGuard requires kernel >= 5.6; Ubuntu 22.04's 5.15 qualifies)
+encryption:
+  enabled: true
+  type: wireguard
+
+# Enable node port
+nodePort:
+  enabled: true
+
+# Enable host port
+hostPort:
+  enabled: true
+
+# L7 load balancing
+loadBalancer:
+  l7:
+    algorithm: round_robin
+
+# Cilium ingress controller (Gateway API is used instead)
+ingressController:
+  enabled: false
+
+# etcd kvstore configuration
+etcd:
+  enabled: false
+
+# Prometheus configuration
+prometheus:
+  enabled: true
+  port: 9962
+
+# Clustermesh configuration (single cluster: no clustermesh API server)
+clustermesh:
+  useAPIServer: false

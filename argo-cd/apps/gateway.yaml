@@ -1,0 +1,23 @@
+# Argo CD Application: Gateway API resources (GatewayClass + Gateway)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: kubeops
+  source:
+    repoURL: https://github.com/wbatchayon/kubeops.git
+    targetRevision: main
+    path: gateway-api
+  destination:
+    server: https://kubernetes.default.svc
+    # The Gateway manifest sets its own namespace (kube-system); this is the
+    # default for any resource in the path that omits one
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

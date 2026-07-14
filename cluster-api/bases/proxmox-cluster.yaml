@@ -1,0 +1,30 @@
+# ProxmoxCluster Infrastructure Definition
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxCluster
+metadata:
+  name: ${CLUSTER_NAME}-proxmox
+  namespace: ${NAMESPACE}
+spec:
+  controlPlaneEndpoint:
+    host: ${CONTROL_PLANE_ENDPOINT_HOST}
+    port: ${CONTROL_PLANE_ENDPOINT_PORT}
+  credentialsRef:
+    name: ${CLUSTER_NAME}-proxmox-credentials
+  ipv4Config:
+    addresses:
+      - 192.168.1.100-192.168.1.200
+    prefix: 24
+    gateway: 192.168.1.1
+  dnsServers:
+    - 192.168.1.1
+  failureDomains:
+    - id: proxmox
+      name: proxmox
+      region: default
+# NOTE: the Proxmox credentials Secret referenced by credentialsRef above must be
+# created out-of-band (never commit it to git), e.g.:
+#   kubectl create secret generic ${CLUSTER_NAME}-proxmox-credentials -n ${NAMESPACE} \
+#     --from-literal=url=$PROXMOX_URL \
+#     --from-literal=token=$PROXMOX_TOKEN_ID \
+#     --from-literal=secret=$PROXMOX_TOKEN_SECRET
+# or provisioned via Vault / External Secrets Operator.

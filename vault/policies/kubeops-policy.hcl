@@ -1,8 +1,9 @@
 # KubeOps Vault Policy
 
-# Enable secrets engine
-path "sys/mounts/*" {
-  capabilities = ["create", "read", "update", "delete"]
+# List secrets engines (read-only; mounting engines is an operator task,
+# not something this policy should allow)
+path "sys/mounts" {
+  capabilities = ["read"]
 }
 
 # Kubernetes secrets
@@ -23,9 +24,10 @@ path "pki_int/certs" {
   capabilities = ["read", "list"]
 }
 
-# Kubernetes auth
-path "auth/kubernetes/role/*" {
-  capabilities = ["create", "read", "update", "delete"]
+# Kubernetes auth: only roles owned by this project, and no delete
+# (creating a role bound to a privileged ServiceAccount is an escalation path)
+path "auth/kubernetes/role/kubeops-*" {
+  capabilities = ["create", "read", "update"]
 }
 
 # Transit secrets engine for encryption

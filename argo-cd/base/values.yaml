@@ -1,0 +1,111 @@
+# Argo CD Helm Chart Values
+
+# Global settings
+global:
+  image:
+    # Keep this on a current patched release; 2.8.x is EOL with known CVEs
+    tag: v2.13.3
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+  logging:
+    format: text
+    level: info
+
+# Controller configuration
+controller:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Repository server configuration
+repoServer:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+# Application set controller
+applicationSet:
+  enabled: true
+  replicas: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 32Mi
+
+# Dex configuration
+dex:
+  enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Server configuration
+server:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  service:
+    # Do not expose the API/UI directly; use `kubectl port-forward` or an
+    # authenticated ingress/Gateway route instead of a raw LoadBalancer
+    type: ClusterIP
+  ingress:
+    enabled: false
+    annotations: {}
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+
+# Redis configuration
+redis:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 32Mi
+
+# HA configuration (for production)
+configs:
+  # Cluster credentials (will be managed externally)
+  credentials:
+  # SSH known hosts (will be managed externally)
+  knownHosts:
+  
+  # Repository credentials
+  repositories: []
+  
+  # TLS configuration
+  tls:
+    # Custom CA certificates
+    ca: ""
+  
+  # Resource tracking
+  resourceTrackingMethod: annotation
+  resourceHealthChecks:
+    # yamllint disable rule:line-length
+    - url: https://raw.githubusercontent.com/argoproj/argo-workflows/master/pkg/apis/workflow/v1alpha1/workflow-task-result.yaml
+    - url: https://raw.githubusercontent.com/argoproj/argo-workflows/master/pkg/apis/workflow/v1alpha1/workflow-template.yaml
+    # yamllint enable rule:line-length

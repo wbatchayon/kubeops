@@ -1,0 +1,16 @@
+---
+# KubeadmConfigTemplate for worker nodes (referenced by md.yaml)
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: ${CLUSTER_NAME}-worker
+  namespace: ${NAMESPACE}
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cgroup-driver: systemd
+            eviction-hard: nodefs.available<10%,nodefs.inodesFree<5%,imagefs.available<15%
