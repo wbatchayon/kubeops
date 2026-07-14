@@ -12,7 +12,8 @@ permissions:
 
 env:
   GO_VERSION: '1.21'
-  TERRAFORM_VERSION: '1.6.0'
+  # 1.6.0 crashes on sensitive values in conditionals ("value is marked" panic)
+  TERRAFORM_VERSION: '1.14.7'
   ANSIBLE_VERSION: '2.14'
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install yamllint
         run: pip install yamllint
@@ -31,7 +32,7 @@ jobs:
         run: yamllint -c .yamllint.yaml .
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -47,10 +48,10 @@ jobs:
     needs: validate
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -59,7 +60,7 @@ jobs:
           go build -o bin/kubeops ./cmd/kubeops
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: kubeops-binary
           path: bin/kubeops
@@ -71,10 +72,10 @@ jobs:
     needs: build
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -83,7 +84,7 @@ jobs:
           go test -short -coverprofile=coverage.out ./...
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: coverage.out
@@ -95,10 +96,10 @@ jobs:
     needs: test-unit
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -120,10 +121,11 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.24.0
+        # Third-party action: pinned to the commit behind tag v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -142,10 +144,10 @@ jobs:
     needs: validate
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
@@ -170,13 +172,18 @@ jobs:
     needs: validate
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install ansible-lint
         run: pip install ansible-lint
 
+      - name: Install required collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
+
       - name: Run Ansible Lint
-        run: ansible-lint ansible/
+        # Run from ansible/ so ansible.cfg (roles_path) is picked up
+        working-directory: ansible
+        run: ansible-lint
         continue-on-error: true
 
   # Stage 8: Packaging
@@ -186,10 +193,10 @@ jobs:
     needs: [build, security]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -200,7 +207,7 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o bin/kubeops-windows-amd64.exe ./cmd/kubeops
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-artifacts
           path: bin/
@@ -212,10 +219,10 @@ jobs:
     needs: packaging
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -235,7 +242,7 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Deploy to test environment
         run: |
@@ -249,7 +256,7 @@ jobs:
     needs: deploy-test
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check Prometheus metrics
         run: |
