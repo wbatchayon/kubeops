@@ -60,7 +60,7 @@ jobs:
           go build -o bin/kubeops ./cmd/kubeops
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: kubeops-binary
           path: bin/kubeops
@@ -84,7 +84,7 @@ jobs:
           go test -short -coverprofile=coverage.out ./...
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: coverage.out
@@ -133,7 +133,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -207,7 +207,7 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o bin/kubeops-windows-amd64.exe ./cmd/kubeops
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: release-artifacts
           path: bin/
