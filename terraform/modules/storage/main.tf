@@ -1,12 +1,6 @@
 # Storage Module - Proxmox Storage Configuration
-
-terraform {
-  required_providers {
-    proxmox = {
-      source = "telmate/proxmox"
-    }
-  }
-}
+# This module creates no resources (Proxmox storage is configured at the
+# node/cluster level), so it declares no provider requirements.
 
 variable "cluster_name" {
   description = "Cluster name"
@@ -36,13 +30,13 @@ variable "tags" {
 output "storage_info" {
   description = "Storage configuration info"
   value = {
-    cluster_name  = var.cluster_name
-    environment   = var.environment
+    cluster_name = var.cluster_name
+    environment  = var.environment
     node         = var.proxmox_node
     recommended_storages = {
-      local      = "Local storage for VM templates"
+      local     = "Local storage for VM templates"
       local_lvm = "Local LVM storage for VM disks"
-      shared     = "Shared storage (Ceph/NFS) for persistent volumes"
+      shared    = "Shared storage (Ceph/NFS) for persistent volumes"
     }
   }
 }
@@ -51,8 +45,8 @@ output "volume_requirements" {
   description = "Volume requirements for the cluster"
   value = {
     control_plane_disk = "50GB per control plane node"
-    worker_disk       = "50GB per worker node (expandable)"
-    etcd_volume       = "20GB for etcd (embedded in control plane disk)"
-    containerd_volume = "Containerd uses control plane disk"
+    worker_disk        = "50GB per worker node (expandable)"
+    etcd_volume        = "20GB for etcd (embedded in control plane disk)"
+    containerd_volume  = "Containerd uses control plane disk"
   }
 }

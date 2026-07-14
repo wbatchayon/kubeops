@@ -1,12 +1,6 @@
 # Network Module - Proxmox Network Configuration
-
-terraform {
-  required_providers {
-    proxmox = {
-      source = "telmate/proxmox"
-    }
-  }
-}
+# This module creates no resources (Proxmox network configuration via
+# Terraform is limited), so it declares no provider requirements.
 
 variable "bridge" {
   description = "Bridge interface"
@@ -52,8 +46,8 @@ output "network_info" {
   description = "Network configuration info"
   value = {
     bridge      = var.bridge
-    vlan_tag   = var.vlan_tag
-    cluster    = var.cluster_name
+    vlan_tag    = var.vlan_tag
+    cluster     = var.cluster_name
     environment = var.environment
   }
 }

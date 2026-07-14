@@ -10,6 +10,9 @@
 proxmox = {
   url          = "https://proxmox.example.com:8006/api2/json"
   user         = "root@pam"
+  # password is optional when using token auth (the primary method) and
+  # defaults to "" if omitted.
+  # password   = ""
   token_id     = ""  # Set via PM_API_TOKEN_ID env var
   token_secret = "" # Set via PM_API_TOKEN_SECRET env var
   node         = "pve"
@@ -43,10 +46,12 @@ worker = {
 }
 
 # Network Configuration
+# ip_start drives static VM addressing: control planes get ip_start..+N-1,
+# workers get ip_start+10.. (keep consistent with ansible/inventory/hosts.yaml)
 network = {
   bridge      = "vmbr0"
   vlan_tag   = 0
-  ip_start   = "192.168.1.100"
+  ip_start   = "192.168.1.101"
   ip_end     = "192.168.1.200"
   gateway    = "192.168.1.1"
   dns_servers = ["1.1.1.1", "8.8.8.8"]
