@@ -1,0 +1,7 @@
+---
+# Default variables for the kubeadm role
+
+# Stable endpoint for the Kubernetes API server shared by all control planes.
+# Defaults to the address of the first control-plane node; override in the
+# inventory with a load-balancer/VIP address for a true HA setup.
+control_plane_endpoint: "{{ hostvars[groups['control_plane'][0]]['ansible_host'] }}"

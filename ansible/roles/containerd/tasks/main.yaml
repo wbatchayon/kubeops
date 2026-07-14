@@ -22,30 +22,40 @@
 
 - name: Download containerd tarball
   ansible.builtin.get_url:
-    url: https://github.com/containerd/containerd/releases/download/v1.7.13/containerd-1.7.13-linux-amd64.tar.gz
-    dest: /tmp/containerd.tar.gz
+    url: "{{ containerd_release_url }}/{{ containerd_tarball }}"
+    dest: "/tmp/{{ containerd_tarball }}"
+    checksum: "sha256:{{ containerd_release_url }}/{{ containerd_tarball }}.sha256sum"
     mode: '0644'
   register: containerd_download
 
 - name: Extract containerd
   ansible.builtin.unarchive:
-    src: /tmp/containerd.tar.gz
+    src: "/tmp/{{ containerd_tarball }}"
     dest: /usr/local
     remote_src: true
     creates: /usr/local/bin/containerd
   when: containerd_download.changed
 
+# Unit file vendored from containerd v1.7.13 (Apache-2.0) rather than
+# downloaded at run time, so its content is reviewed and integrity-guaranteed
 - name: Install containerd systemd service
-  ansible.builtin.get_url:
-    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+  ansible.builtin.copy:
+    src: containerd.service
     dest: /etc/systemd/system/containerd.service
     mode: '0644'
   register: containerd_service
+  notify: Restart containerd
 
 - name: Reload systemd
   ansible.builtin.systemd:
     daemon_reload: true
   when: containerd_service.changed
+
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
 
 - name: Create containerd config
   ansible.builtin.copy:
@@ -56,12 +66,12 @@
       [plugins]
         [plugins."io.containerd.grpc.v1.cri"]
           sandbox_image = "registry.k8s.io/pause:3.9"
-        [plugins."io.containerd.grpc.v1.cri.containerd.runtimes.runc]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
           runtime_type = "io.containerd.runc.v2"
-          [plugins."io.containerd.grpc.v1.cri.containerd.runtimes.runc.options]
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
             SystemdCgroup = true
     mode: '0644'
-  register: containerd_config
+  notify: Restart containerd
 
 - name: Enable and start containerd
   ansible.builtin.systemd:

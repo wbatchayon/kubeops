@@ -1,0 +1,6 @@
+---
+# Default variables for the containerd role
+
+containerd_version: "1.7.13"
+containerd_release_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}"
+containerd_tarball: "containerd-{{ containerd_version }}-linux-amd64.tar.gz"

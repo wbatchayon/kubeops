@@ -1,0 +1,46 @@
+---
+# Ansible inventory for KubeOps cluster
+
+all:
+  children:
+    control_plane:
+      hosts:
+        kubeops-cp-1:
+          ansible_host: 192.168.1.101
+          kubernetes_role: control-plane
+        kubeops-cp-2:
+          ansible_host: 192.168.1.102
+          kubernetes_role: control-plane
+        kubeops-cp-3:
+          ansible_host: 192.168.1.103
+          kubernetes_role: control-plane
+    worker:
+      hosts:
+        kubeops-worker-1:
+          ansible_host: 192.168.1.111
+          kubernetes_role: worker
+        kubeops-worker-2:
+          ansible_host: 192.168.1.112
+          kubernetes_role: worker
+        kubeops-worker-3:
+          ansible_host: 192.168.1.113
+          kubernetes_role: worker
+
+  vars:
+    # Cluster configuration
+    cluster_name: kubeops
+    kubernetes_version: "1.28.0"
+    pod_network_cidr: "10.244.0.0/16"
+    service_cidr: "10.96.0.0/16"
+    cluster_domain: "cluster.local"
+    
+    # SSH configuration
+    ansible_user: ubuntu
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa
+    
+    # Connection settings
+    # Host keys pinned on first contact; wipe the file when re-provisioning VMs
+    ansible_ssh_common_args: >-
+      -o StrictHostKeyChecking=accept-new
+      -o UserKnownHostsFile=~/.ssh/known_hosts.kubeops
