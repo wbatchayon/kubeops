@@ -5,7 +5,7 @@ bin/
 *.dll
 *.so
 *.dylib
-kubeops
+/kubeops
 
 # Test binary
 *.test
@@ -22,7 +22,8 @@ go.work
 *.tfstate.*
 .terraform/
 *.tfplan
-.terraform.lock.hcl
+*.tfvars
+!*.tfvars.example
 
 # Ansible
 .ansible/
@@ -54,7 +55,17 @@ kubeconfig.local
 *.key
 *.crt
 secrets/
-vault/
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+*_rsa
+*.ppk
+.vault-token
+vault/token
+vault/**/token
+vault/**/*.token
+vault/**/unseal-keys*
 
 # Logs
 *.log
@@ -70,8 +81,3 @@ build/
 
 # Helm
 /charts/*/charts/
--e 
-# KubeOps CLI source code
-!cmd/kubeops/
--e 
-!vault/
