@@ -10,12 +10,12 @@
 - name: Check if node is already initialized
   ansible.builtin.stat:
     path: /etc/kubernetes/admin.conf
-  register: kubeconfig_check
+  register: kubeadm_kubeconfig_check
 
 - name: Check if node has already joined the cluster
   ansible.builtin.stat:
     path: /etc/kubernetes/kubelet.conf
-  register: kubelet_conf_check
+  register: kubeadm_kubelet_conf_check
 
 - name: Create kubeadm config directory
   ansible.builtin.file:
@@ -24,7 +24,7 @@
     mode: '0755'
   when:
     - inventory_hostname == groups['control_plane'][0]
-    - not kubeconfig_check.stat.exists
+    - not kubeadm_kubeconfig_check.stat.exists
 
 - name: Create kubeadm config for first control plane
   ansible.builtin.copy:
@@ -41,14 +41,14 @@
       ---
       apiVersion: kubeadm.k8s.io/v1beta3
       kind: ClusterConfiguration
-      controlPlaneEndpoint: "{{ control_plane_endpoint }}:6443"
+      controlPlaneEndpoint: "{{ kubeadm_control_plane_endpoint }}:6443"
       networking:
         podSubnet: "{{ pod_network_cidr }}"
         serviceSubnet: "{{ service_cidr }}"
       clusterDomain: "{{ cluster_domain }}"
       apiServer:
         certSANs:
-          - "{{ control_plane_endpoint }}"
+          - "{{ kubeadm_control_plane_endpoint }}"
           - "{{ ansible_host }}"
           - 127.0.0.1
           - kubernetes
@@ -60,55 +60,56 @@
     mode: '0600'
   when:
     - inventory_hostname == groups['control_plane'][0]
-    - not kubeconfig_check.stat.exists
+    - not kubeadm_kubeconfig_check.stat.exists
 
 - name: Initialize Kubernetes control plane (first control plane only)
   ansible.builtin.command: kubeadm init --config /etc/kubeadm/kubeadm-config.yaml --upload-certs
   when:
     - inventory_hostname == groups['control_plane'][0]
-    - not kubeconfig_check.stat.exists
+    - not kubeadm_kubeconfig_check.stat.exists
   register: kubeadm_init
+  changed_when: kubeadm_init.rc == 0
   failed_when: kubeadm_init.rc != 0 and 'already exists' not in kubeadm_init.stdout
 
 - name: Generate join command on first control plane
   ansible.builtin.command: kubeadm token create --print-join-command
-  register: cp_join_command
+  register: kubeadm_cp_join_command
   changed_when: true
   no_log: true
   delegate_to: "{{ groups['control_plane'][0] }}"
   when:
     - inventory_hostname in groups['control_plane']
     - inventory_hostname != groups['control_plane'][0]
-    - not kubelet_conf_check.stat.exists
+    - not kubeadm_kubelet_conf_check.stat.exists
 
 - name: Upload control plane certificates and fetch certificate key
   ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
-  register: cp_cert_key
+  register: kubeadm_cp_cert_key
   changed_when: true
   no_log: true
   delegate_to: "{{ groups['control_plane'][0] }}"
   when:
     - inventory_hostname in groups['control_plane']
     - inventory_hostname != groups['control_plane'][0]
-    - not kubelet_conf_check.stat.exists
+    - not kubeadm_kubelet_conf_check.stat.exists
 
 - name: Join secondary control plane to cluster
   ansible.builtin.command: >-
-    {{ cp_join_command.stdout }}
+    {{ kubeadm_cp_join_command.stdout }}
     --control-plane
-    --certificate-key {{ cp_cert_key.stdout_lines[-1] }}
-  register: cp_join_result
+    --certificate-key {{ kubeadm_cp_cert_key.stdout_lines[-1] }}
+  register: kubeadm_cp_join_result
   changed_when: true
   no_log: true
   when:
     - inventory_hostname in groups['control_plane']
     - inventory_hostname != groups['control_plane'][0]
-    - not kubelet_conf_check.stat.exists
+    - not kubeadm_kubelet_conf_check.stat.exists
 
 - name: Re-check admin.conf after initialization
   ansible.builtin.stat:
     path: /etc/kubernetes/admin.conf
-  register: kubeconfig_check_post
+  register: kubeadm_kubeconfig_check_post
   when: inventory_hostname in groups['control_plane']
 
 - name: Create .kube directory
@@ -130,7 +131,7 @@
     mode: '0600'
   when:
     - inventory_hostname in groups['control_plane']
-    - kubeconfig_check_post.stat.exists
+    - kubeadm_kubeconfig_check_post.stat.exists
 
 - name: Install kubectl bash completion
   ansible.builtin.shell: |

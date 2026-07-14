@@ -3,18 +3,18 @@
 
 # Debian package pin: pkgs.k8s.io deb packages carry a -N.N revision
 # (e.g. kubelet=1.28.0-1.1)
-kubernetes_package_version: "{{ kubernetes_version }}-1.1"
+common_kubernetes_package_version: "{{ kubernetes_version }}-1.1"
 
 # Minor version used in the pkgs.k8s.io repository path (e.g. 1.28)
-kubernetes_repo_version: "{{ kubernetes_version.split('.')[:2] | join('.') }}"
+common_kubernetes_repo_version: "{{ kubernetes_version.split('.')[:2] | join('.') }}"
 
 # Kernel modules required by the container runtime and CNI
-kernel_modules:
+common_kernel_modules:
   - overlay
   - br_netfilter
 
 # Sysctl parameters required/recommended for Kubernetes nodes
-sysctl_params:
+common_sysctl_params:
   net.ipv4.ip_forward: "1"
   net.bridge.bridge-nf-call-iptables: "1"
   net.bridge.bridge-nf-call-ip6tables: "1"

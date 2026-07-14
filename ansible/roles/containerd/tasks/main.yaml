@@ -34,7 +34,6 @@
     dest: /usr/local
     remote_src: true
     creates: /usr/local/bin/containerd
-  when: containerd_download.changed
 
 # Unit file vendored from containerd v1.7.13 (Apache-2.0) rather than
 # downloaded at run time, so its content is reviewed and integrity-guaranteed
@@ -45,11 +44,6 @@
     mode: '0644'
   register: containerd_service
   notify: Restart containerd
-
-- name: Reload systemd
-  ansible.builtin.systemd:
-    daemon_reload: true
-  when: containerd_service.changed
 
 - name: Create containerd config directory
   ansible.builtin.file:
@@ -78,3 +72,4 @@
     name: containerd
     state: started
     enabled: true
+    daemon_reload: true
