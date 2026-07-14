@@ -8,6 +8,8 @@ KubeOps is a Kubernetes cluster deployment tool for Proxmox using Infrastructure
 
 ## Architecture Diagram
 
+![KubeOps architecture](assets/KubeOps.png)
+
 ## Components
 
 ### Infrastructure Layer
@@ -57,7 +59,7 @@ kubeops/
 ├── ansible/              # Configuration management
 │   ├── playbooks/       # Ansible playbooks
 │   └── roles/          # Ansible roles
-├── argocd/             # Argo CD configurations
+├── argo-cd/            # Argo CD configurations
 ├── cilium/             # Cilium CNI configs
 ├── cluster-api/        # Cluster API manifests
 ├── gateway-api/        # Gateway API configs

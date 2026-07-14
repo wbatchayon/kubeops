@@ -14,7 +14,7 @@ KubeOps uses GitHub Actions for continuous integration and deployment with 12 st
 | 2 | Build | Binary compilation | Compiles for multiple platforms (Linux, macOS, Windows); Runs tests without network |
 | 3 | Unit Tests | Go unit tests with coverage | Executes Go unit tests with coverage reporting and short mode tests |
 | 4 | Integration Tests | Terraform, Ansible, K8s integration | Runs integration tests for Terraform, Ansible, and Kubernetes |
-| 5 | Security | Trivy vulnerability scanning | Trivy vulnerability scanner, CodeQL analysis, and dependency scanning |
+| 5 | Security | Trivy vulnerability scanning | Trivy filesystem scan with SARIF results uploaded to GitHub code scanning |
 | 6 | Terraform | Terraform format and validate | Validates Terraform format and configuration |
 | 7 | Ansible Lint | Ansible playbooks validation | Validates Ansible playbooks syntax and best practices |
 | 8 | Packaging | Multi-platform binaries | Creates release artifacts: binaries, container images, and Helm charts |
@@ -31,17 +31,14 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  release:
-    types: [published]
 ```
 
 ## Environment Configuration
 
 | Environment | Trigger | Description |
 |-------------|---------|-------------|
-| Dev | Push to develop | Development testing |
-| Staging | PR to main | Pre-production |
-| Production | Release | Production deployment |
+| Dev | Push to develop | Development testing (deploy-test job) |
+| Staging | PR to main | Pre-production validation |
 
 ## Required Secrets
 
@@ -60,7 +57,7 @@ Configure these GitHub secrets:
 
 ```bash
 # Run validation
-make validate
+make validate-all
 
 # Run tests
 make test

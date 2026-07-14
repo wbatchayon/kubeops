@@ -16,7 +16,8 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 ### How to Report
 
 1. **Do NOT** create a public GitHub issue for security vulnerabilities
-2. Email security concerns to: security@kubeops.io
+2. Report privately via [GitHub Security Advisories](https://github.com/wbatchayon/kubeops/security/advisories/new),
+   or email the maintainer at batchayonwilliam@gmail.com
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce the issue

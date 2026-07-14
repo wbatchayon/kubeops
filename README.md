@@ -10,7 +10,7 @@
 
 ```bash
 # Install CLI
-go install github.com/kubeops/kubeops@latest
+go install github.com/wbatchayon/kubeops/cmd/kubeops@latest
 
 # Initialize cluster
 kubeops init --name mycluster --kubernetes-version v1.28.0
@@ -38,7 +38,7 @@ See [docs/](docs/) for detailed documentation:
 - [CLI Reference](docs/cli-reference.md)
 - [CI/CD Pipeline](docs/cicd.md)
 - [Security](docs/SECURITY.md)
-- [Contributing](docs/CONTRIBUTING.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## Requirements
 

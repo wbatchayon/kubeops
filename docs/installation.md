@@ -18,7 +18,7 @@ This guide covers installing KubeOps and its prerequisites.
 ### From Source
 
 ```bash
-git clone https://github.com/kubeops/kubeops.git
+git clone https://github.com/wbatchayon/kubeops.git
 cd kubeops
 make build
 sudo mv bin/kubeops /usr/local/bin/
@@ -27,7 +27,7 @@ sudo mv bin/kubeops /usr/local/bin/
 ### Using Go Install
 
 ```bash
-go install github.com/kubeops/kubeops@latest
+go install github.com/wbatchayon/kubeops/cmd/kubeops@latest
 ```
 
 ### Using Homebrew
@@ -40,12 +40,12 @@ brew install kubeops
 
 ```bash
 # Linux
-curl -L https://github.com/kubeops/kubeops/releases/latest/download/kubeops-linux-amd64 -o kubeops
+curl -L https://github.com/wbatchayon/kubeops/releases/latest/download/kubeops-linux-amd64 -o kubeops
 chmod +x kubeops
 sudo mv kubeops /usr/local/bin/
 
 # macOS
-curl -L https://github.com/kubeops/kubeops/releases/latest/download/kubeops-darwin-amd64 -o kubeops
+curl -L https://github.com/wbatchayon/kubeops/releases/latest/download/kubeops-darwin-amd64 -o kubeops
 chmod +x kubeops
 sudo mv kubeops /usr/local/bin/
 ```

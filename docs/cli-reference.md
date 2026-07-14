@@ -11,7 +11,7 @@ kubeops [global options] <command> [command options]
 | Option | Description |
 |--------|-------------|
 | `--config, -c` | Configuration file path |
-| `--environment` | Environment (dev/staging/prod) |
+| `--environment` | Environment (dev/prod) |
 | `--verbose, -v` | Enable verbose output |
 | `--version` | Show version information |
 | `--help, -h` | Show help |
@@ -29,10 +29,10 @@ kubeops init [command options]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--name` | Cluster name |
+| `--name` | Cluster name (default: kubeops) |
 | `--kubernetes-version` | Kubernetes version (default: v1.28.0) |
-| `--control-plane-replicas` | Number of control plane nodes (default: 3) |
-| `--worker-replicas` | Number of worker nodes (default: 3) |
+| `--control-plane-nodes` | Number of control plane nodes (default: 3) |
+| `--worker-nodes` | Number of worker nodes (default: 3) |
 
 **Example:**
 ```bash
@@ -52,9 +52,10 @@ kubeops deploy [command options]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--skip-validation` | Skip pre-deployment validation |
-| `--terraform-only` | Only run Terraform |
-| `--ansible-only` | Only run Ansible |
+| `--skip-terraform` | Skip Terraform provisioning |
+| `--skip-ansible` | Skip Ansible configuration |
+| `--skip-capi` | Skip Cluster API deployment |
+| `--dry-run` | Dry run mode |
 
 **Example:**
 ```bash
@@ -74,8 +75,9 @@ kubeops destroy [command options]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--force` | Force destruction without confirmation |
-| `--preserve-storage` | Preserve storage volumes |
+| `--force, -f` | Force destruction without confirmation |
+
+Without `--force`, the command refuses to run and exits with a non-zero code.
 
 **Example:**
 ```bash
@@ -95,7 +97,8 @@ kubeops status [command options]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--output json` | Output in JSON format |
+| `--json-output` | Output in JSON format |
+| `--watch` | Watch status continuously |
 
 **Example:**
 ```bash
@@ -112,9 +115,19 @@ Validate cluster configuration.
 kubeops validate [command options]
 ```
 
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--all` | Validate all components |
+| `--terraform` | Validate Terraform only |
+| `--ansible` | Validate Ansible only |
+| `--kubernetes` | Validate Kubernetes manifests only |
+
+With no option, everything is validated.
+
 **Example:**
 ```bash
-kubeops validate
+kubeops validate --terraform
 ```
 
 ---
@@ -124,7 +137,7 @@ kubeops validate
 Manage applications.
 
 ```bash
-kubeapp <subcommand>
+kubeops app <subcommand>
 ```
 
 #### app deploy
@@ -132,18 +145,12 @@ kubeapp <subcommand>
 Deploy an application.
 
 ```bash
-kubeops app deploy <name> <chart-path> [options]
+kubeops app deploy [chart]
 ```
-
-**Options:**
-| Option | Description |
-|--------|-------------|
-| `--values` | Values file path |
-| `--namespace` | Target namespace |
 
 **Example:**
 ```bash
-kubeops app deploy myapp ./helm-chart --values values.yaml
+kubeops app deploy ./helm-chart
 ```
 
 #### app list
@@ -154,12 +161,12 @@ List deployed applications.
 kubeops app list
 ```
 
-#### app delete
+#### app sync
 
-Delete an application.
+Sync an application (Argo CD).
 
 ```bash
-kubeops app delete <name>
+kubeops app sync [app]
 ```
 
 ---
@@ -170,6 +177,14 @@ Manage secrets with Vault.
 
 ```bash
 kubeops secrets <subcommand>
+```
+
+#### secrets init
+
+Initialize Vault.
+
+```bash
+kubeops secrets init
 ```
 
 #### secrets set
@@ -191,14 +206,6 @@ Get a secret.
 
 ```bash
 kubeops secrets get <key>
-```
-
-#### secrets delete
-
-Delete a secret.
-
-```bash
-kubeops secrets delete <key>
 ```
 
 ---
@@ -239,8 +246,4 @@ kubeops version
 | Code | Description |
 |------|-------------|
 | 0 | Success |
-| 1 | General error |
-| 2 | Validation error |
-| 3 | Cluster not found |
-| 4 | Deployment failed |
-| 5 | Authentication error |
+| 1 | Error (validation, deployment, refused destroy, etc.) |

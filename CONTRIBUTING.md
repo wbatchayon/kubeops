@@ -4,7 +4,7 @@ Thank you for your interest in contributing to KubeOps!
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project, you agree to abide by our [Code of Conduct](docs/CODE_OF_CONDUCT.md).
 
 ## Getting Started
 
