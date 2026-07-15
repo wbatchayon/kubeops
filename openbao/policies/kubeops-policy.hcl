@@ -1,4 +1,4 @@
-# KubeOps Vault Policy
+# KubeOps OpenBao Policy
 
 # List secrets engines (read-only; mounting engines is an operator task,
 # not something this policy should allow)

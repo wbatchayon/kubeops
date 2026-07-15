@@ -205,18 +205,18 @@ func newStatusCommand() *cobra.Command {
 func newSecretsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "secrets",
-		Short: "Manage secrets with Vault",
-		Long:  `Manage secrets using HashiCorp Vault integration.`,
+		Short: "Manage secrets with OpenBao",
+		Long:  `Manage secrets using OpenBao integration.`,
 	}
 
 	cmd.AddCommand(
 		&cobra.Command{
 			Use:   "init",
-			Short: "Initialize Vault",
+			Short: "Initialize OpenBao",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				fmt.Println("Initializing Vault...")
-				// TODO: Initialize Vault
-				fmt.Println("✓ Vault initialized")
+				fmt.Println("Initializing OpenBao...")
+				// TODO: Initialize OpenBao
+				fmt.Println("✓ OpenBao initialized")
 				return nil
 			},
 		},
@@ -226,7 +226,7 @@ func newSecretsCommand() *cobra.Command {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				fmt.Printf("Getting secret: %s\n", args[0])
-				// TODO: Get secret from Vault
+				// TODO: Get secret from OpenBao
 				return nil
 			},
 		},
@@ -236,7 +236,7 @@ func newSecretsCommand() *cobra.Command {
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				fmt.Printf("Setting secret: %s\n", args[0])
-				// TODO: Set secret in Vault
+				// TODO: Set secret in OpenBao
 				fmt.Println("✓ Secret set")
 				return nil
 			},

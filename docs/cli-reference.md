@@ -173,7 +173,7 @@ kubeops app sync [app]
 
 ### secrets
 
-Manage secrets with Vault.
+Manage secrets with OpenBao.
 
 ```bash
 kubeops secrets <subcommand>
@@ -181,7 +181,7 @@ kubeops secrets <subcommand>
 
 #### secrets init
 
-Initialize Vault.
+Initialize OpenBao.
 
 ```bash
 kubeops secrets init

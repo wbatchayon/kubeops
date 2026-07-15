@@ -62,10 +62,11 @@ id_dsa
 *_rsa
 *.ppk
 .vault-token
-vault/token
-vault/**/token
-vault/**/*.token
-vault/**/unseal-keys*
+.bao-token
+openbao/token
+openbao/**/token
+openbao/**/*.token
+openbao/**/unseal-keys*
 
 # Logs
 *.log

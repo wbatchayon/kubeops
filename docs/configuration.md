@@ -42,9 +42,9 @@ proxmox:
       - "ssh-rsa AAAAB3Nza..."
     password: "changeme"
 
-vault:
-  address: "http://vault:8200"
-  token: "your-vault-token"
+openbao:
+  address: "http://openbao:8200"
+  token: "your-openbao-token"
   secret-engine: "kubernetes"
 
 argo-cd:
@@ -71,12 +71,15 @@ export PM_API_TOKEN_ID="username@pam!token"
 export PM_API_TOKEN_SECRET="uuid-secret"
 ```
 
-### Vault
+### OpenBao
 
 ```bash
-export VAULT_ADDR="http://vault:8200"
-export VAULT_TOKEN="token"
+export BAO_ADDR="http://openbao:8200"
+export BAO_TOKEN="token"
 ```
+
+The `bao` CLI also honors the legacy `VAULT_ADDR`/`VAULT_TOKEN` variables
+for compatibility with existing tooling.
 
 ### Argo CD
 

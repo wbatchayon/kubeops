@@ -27,4 +27,4 @@ spec:
 #     --from-literal=url=$PROXMOX_URL \
 #     --from-literal=token=$PROXMOX_TOKEN_ID \
 #     --from-literal=secret=$PROXMOX_TOKEN_SECRET
-# or provisioned via Vault / External Secrets Operator.
+# or provisioned via OpenBao / External Secrets Operator.

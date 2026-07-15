@@ -32,7 +32,7 @@ func main() {
 	viper.SetDefault("cluster.kubernetes-version", "v1.28.0")
 	viper.SetDefault("cluster.control-plane.replicas", 3)
 	viper.SetDefault("cluster.worker.replicas", 3)
-	viper.SetDefault("vault.address", "http://vault:8200")
+	viper.SetDefault("openbao.address", "http://openbao:8200")
 	viper.SetDefault("argo-cd.address", "http://argocd:8080")
 
 	// Read configuration file if present; a missing file is fine, any other

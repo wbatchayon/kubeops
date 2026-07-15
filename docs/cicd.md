@@ -1,27 +1,31 @@
 # CI/CD Pipeline
 
-This document describes the KubeOps CI/CD pipeline.
+This document describes the KubeOps CI pipeline, defined in
+[`.github/workflows/ci.yaml`](../.github/workflows/ci.yaml).
 
 ## Overview
 
-KubeOps uses GitHub Actions for continuous integration and deployment with 12 stages.
+KubeOps uses GitHub Actions for continuous integration with 12 stages.
+Stages 4, 9, 10, and 11 are currently placeholders: they run but skip or
+no-op until the corresponding test suites and environments exist (see the
+[roadmap](../plans/ROADMAP.md)).
 
 ## Pipeline Stages
 
-| # | Stage | Description | Details |
-|---|-------|-------------|---------|
-| 1 | Validation | YAML, Go fmt/vet validation | Validates all configuration files: YAML syntax, Terraform format, Go code formatting |
-| 2 | Build | Binary compilation | Compiles for multiple platforms (Linux, macOS, Windows); Runs tests without network |
-| 3 | Unit Tests | Go unit tests with coverage | Executes Go unit tests with coverage reporting and short mode tests |
-| 4 | Integration Tests | Terraform, Ansible, K8s integration | Runs integration tests for Terraform, Ansible, and Kubernetes |
-| 5 | Security | Trivy vulnerability scanning | Trivy filesystem scan with SARIF results uploaded to GitHub code scanning |
-| 6 | Terraform | Terraform format and validate | Validates Terraform format and configuration |
-| 7 | Ansible Lint | Ansible playbooks validation | Validates Ansible playbooks syntax and best practices |
-| 8 | Packaging | Multi-platform binaries | Creates release artifacts: binaries, container images, and Helm charts |
-| 9 | E2E Tests | End-to-end tests | Full cluster deployment, application deployment, and monitoring verification |
-| 10 | Deploy Test | Test environment deployment | Spins up test cluster, runs smoke tests and integration tests |
-| 11 | Monitoring | Health checks | Cluster API availability, node status, and pod health checks |
-| 12 | Feedback | Build reports, Slack notifications | Build notifications, deployment status, and metrics collection |
+| # | Stage | Depends on | What it does |
+|---|-------|------------|--------------|
+| 1 | Validation | — | yamllint on all YAML files, `gofmt` check, `go vet` |
+| 2 | Build | 1 | Builds the `kubeops` binary and uploads it as an artifact |
+| 3 | Unit Tests | 2 | `go test -short` with coverage report artifact |
+| 4 | Integration Tests | 3 | Runs build-tagged tests in `test/integration/` (skips while the directory is absent) |
+| 5 | Security | 3 | Trivy filesystem scan, SARIF results uploaded to GitHub code scanning |
+| 6 | Terraform | 1 | `terraform fmt -check`, then `init`/`validate` on the dev environment |
+| 7 | Ansible Lint | 1 | ansible-lint on playbooks and roles (non-blocking for now) |
+| 8 | Packaging | 2, 5 | Cross-compiles binaries for Linux, macOS, and Windows |
+| 9 | E2E Tests | 8 | Runs build-tagged tests in `test/e2e/` (skips while the directory is absent) |
+| 10 | Deploy Test | 6, 7 | Placeholder for test-environment deployment; only runs on `develop` |
+| 11 | Monitoring | 10 | Placeholder for post-deployment health checks |
+| 12 | Feedback | 11 | Build summary in the run output; Slack notification on failure |
 
 ## Workflow Triggers
 
@@ -33,42 +37,34 @@ on:
     branches: [main, develop]
 ```
 
-## Environment Configuration
-
-| Environment | Trigger | Description |
-|-------------|---------|-------------|
-| Dev | Push to develop | Development testing (deploy-test job) |
-| Staging | PR to main | Pre-production validation |
+The Deploy Test stage (and the Monitoring and Feedback stages that follow it)
+additionally requires a push to `develop`.
 
 ## Required Secrets
 
-Configure these GitHub secrets:
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `SLACK_WEBHOOK_URL` | Optional | Webhook used by the Feedback stage to notify on failure |
 
-| Secret | Description |
-|--------|-------------|
-| `PM_API_URL` | Proxmox API URL |
-| `PM_API_TOKEN_ID` | Proxmox token ID |
-| `PM_API_TOKEN_SECRET` | Proxmox token secret |
-| `VAULT_ADDR` | Vault server address |
-| `VAULT_TOKEN` | Vault token |
-| `GITHUB_TOKEN` | GitHub API token |
+No other secrets are consumed by the CI pipeline. Credentials for actual
+deployments (Proxmox, OpenBao) are configured locally — see
+[Configuration](configuration.md).
 
 ## Running Locally
 
+The pipeline mirrors Makefile targets, so every gate can be run before
+pushing:
+
 ```bash
-# Run validation
+# Stage 1 equivalents
 make validate-all
 
-# Run tests
+# Stages 3-4
 make test
 
-# Run integration tests
-make test-integration
+# Stage 6
+make terraform-validate
+
+# Stage 7
+make ansible-lint
 ```
-
-## Monitoring
-
-Access pipeline metrics:
-- GitHub Actions dashboard
-- Prometheus metrics endpoint
-- Grafana CI/CD dashboard
