@@ -51,10 +51,6 @@ The CLI is also published to GitHub Packages:
 docker run --rm ghcr.io/wbatchayon/kubeops:latest version
 ```
 
-> **Note:** the first tagged release (v0.1.0) is still pending — see the
-> [roadmap](../plans/ROADMAP.md). Until it is published, install from
-> source or with `go install`.
-
 ## Verify Installation
 
 ```bash

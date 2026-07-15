@@ -2,12 +2,13 @@
 
 ## Supported Versions
 
-KubeOps has no tagged release yet. Until v0.1.0 is published, security fixes
-land on the `main` branch only:
+The following versions of KubeOps are currently supported with security
+updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| `main`  | :white_check_mark: |
+| 0.1.x   | :white_check_mark: |
+| < 0.1   | :x:                |
 
 ## Reporting a Vulnerability
 

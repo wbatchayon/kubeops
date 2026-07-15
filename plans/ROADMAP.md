@@ -81,8 +81,7 @@ The `kubeops` commands are scaffolding (they print what they would do).
 
 ## Phase 4 — Open-source maturity
 
-- [ ] First tagged release (v0.1.0) once Phase 1 completes; keep
-  CHANGELOG.md per release.
+- [x] First tagged release (v0.1.0); keep CHANGELOG.md per release.
 - [ ] Make ansible-lint blocking in CI (fix remaining warnings first) and
   add a golangci-lint config; consider a Trivy severity gate.
 - [ ] Label a set of good-first-issues; add a development-environment
