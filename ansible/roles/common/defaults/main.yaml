@@ -8,6 +8,17 @@ common_kubernetes_package_version: "{{ kubernetes_version }}-1.1"
 # Minor version used in the pkgs.k8s.io repository path (e.g. 1.28)
 common_kubernetes_repo_version: "{{ kubernetes_version.split('.')[:2] | join('.') }}"
 
+# Base URL of the Kubernetes package repository. Public pkgs.k8s.io by
+# default; airgap: point this at the internal package mirror that serves
+# the same layout (see docs/airgap.md)
+common_kubernetes_repo_base_url: "https://pkgs.k8s.io"
+
+# PEM content of the internal CA certificate to add to the node trust
+# store. Required in airgap mode so containerd trusts the Harbor mirror's
+# TLS certificate (issued by the internal PKI — see docs/airgap.md).
+# Empty: no CA is installed.
+common_internal_ca_cert: ""
+
 # Kernel modules required by the container runtime and CNI
 common_kernel_modules:
   - overlay

@@ -1,0 +1,27 @@
+---
+# Firewall role - nftables ingress policy (default drop, 443-only external)
+
+- name: Install nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install nftables (RHEL)
+  ansible.builtin.dnf:
+    name: nftables
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Deploy nftables ruleset
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    mode: '0644'
+  notify: Reload nftables
+
+- name: Enable and start nftables
+  ansible.builtin.systemd:
+    name: nftables
+    state: started
+    enabled: true

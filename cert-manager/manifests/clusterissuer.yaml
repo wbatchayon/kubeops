@@ -1,0 +1,15 @@
+# Internal CA issuer. ACME/Let's Encrypt is unreachable from an air-gapped
+# cluster, so certificates are signed by the internal PKI instead.
+#
+# The kubeops-ca-root Secret (tls.crt/tls.key of the issuing CA) is created
+# out-of-band from the OpenBao PKI intermediate — never committed to git:
+#   kubectl create secret tls kubeops-ca-root -n cert-manager \
+#     --cert=intermediate-ca.pem --key=intermediate-ca-key.pem
+# See docs/airgap.md for the full PKI bootstrap procedure.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: kubeops-ca
+spec:
+  ca:
+    secretName: kubeops-ca-root

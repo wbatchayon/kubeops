@@ -1,0 +1,43 @@
+#!/usr/sbin/nft -f
+# {{ ansible_managed }}
+# Node ingress policy: default drop; only 443/tcp is reachable from outside
+# the cluster and admin networks (see docs/airgap.md).
+
+flush ruleset
+
+table inet filter {
+  chain input {
+    type filter hook input priority 0; policy drop;
+
+    # Loopback and established flows
+    iif "lo" accept
+    ct state established,related accept
+    ct state invalid drop
+
+    # ICMP (path MTU discovery, diagnostics)
+    ip protocol icmp accept
+    ip6 nexthdr ipv6-icmp accept
+
+    # Intra-cluster traffic: nodes (etcd, kubelet, Cilium VXLAN/WireGuard,
+    # API server) and pods (API server via service VIP DNAT)
+    ip saddr {{ firewall_node_cidr }} accept
+    ip saddr {{ firewall_pod_cidr }} accept
+
+    # Administration: SSH and Kubernetes API from the admin network
+    ip saddr {{ firewall_admin_cidr }} tcp dport { 22, 6443 } accept
+
+    # Public entry point: the Gateway's HTTPS listener only
+{% for port in firewall_public_tcp_ports %}
+    tcp dport {{ port }} accept
+{% endfor %}
+  }
+
+  chain forward {
+    # Pod-to-pod traffic is enforced by Cilium network policies, not here
+    type filter hook forward priority 0; policy accept;
+  }
+
+  chain output {
+    type filter hook output priority 0; policy accept;
+  }
+}

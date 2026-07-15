@@ -60,11 +60,38 @@
       [plugins]
         [plugins."io.containerd.grpc.v1.cri"]
           sandbox_image = "registry.k8s.io/pause:3.9"
+        [plugins."io.containerd.grpc.v1.cri".registry]
+          config_path = "/etc/containerd/certs.d"
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
           runtime_type = "io.containerd.runc.v2"
           [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
             SystemdCgroup = true
     mode: '0644'
+  notify: Restart containerd
+
+- name: Create registry mirror directories
+  ansible.builtin.file:
+    path: "/etc/containerd/certs.d/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ containerd_registry_mirrors }}"
+  when: containerd_registry_mirror_host | length > 0
+
+# Every upstream registry is mirrored by a Harbor proxy-cache project named
+# after the upstream host; the upstream stays listed as fallback server for
+# non-airgapped environments
+- name: Configure registry mirrors (Harbor proxy cache)
+  ansible.builtin.copy:
+    dest: "/etc/containerd/certs.d/{{ item }}/hosts.toml"
+    content: |
+      server = "https://{{ item }}"
+
+      [host."https://{{ containerd_registry_mirror_host }}/v2/{{ item }}"]
+        capabilities = ["pull", "resolve"]
+        override_path = true
+    mode: '0644'
+  loop: "{{ containerd_registry_mirrors }}"
+  when: containerd_registry_mirror_host | length > 0
   notify: Restart containerd
 
 - name: Enable and start containerd

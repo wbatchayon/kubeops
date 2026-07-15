@@ -1,0 +1,45 @@
+# Harbor Helm Chart Values
+#
+# Harbor is the cluster's private registry and pull-through proxy cache:
+# in airgap mode every container image and Helm chart consumed by the
+# cluster is served from here (see docs/airgap.md).
+
+expose:
+  # TLS is terminated at the kubeops Gateway (443, internal PKI); traffic
+  # inside the cluster stays on the ClusterIP service
+  type: clusterIP
+  tls:
+    enabled: false
+  clusterIP:
+    name: harbor
+
+externalURL: https://harbor.kubeops.local
+
+# Admin password comes from a Secret created out-of-band (never in git),
+# same pattern as grafana-admin:
+#   kubectl create secret generic harbor-admin -n harbor \
+#     --from-literal=HARBOR_ADMIN_PASSWORD=<password>
+existingSecretAdminPassword: harbor-admin
+existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      size: 100Gi
+    database:
+      size: 5Gi
+    redis:
+      size: 2Gi
+    jobservice:
+      jobLog:
+        size: 1Gi
+
+# Harbor's embedded Trivy needs internet access to refresh its vulnerability
+# database, which an air-gapped cluster does not have. Image scanning is
+# done by Trivy in CI instead (see docs/cicd.md).
+trivy:
+  enabled: false
+
+metrics:
+  enabled: true

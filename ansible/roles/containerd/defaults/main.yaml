@@ -2,5 +2,17 @@
 # Default variables for the containerd role
 
 containerd_version: "1.7.13"
+# Where the containerd tarball is downloaded from. Airgap: point this at
+# the internal artifact mirror instead of GitHub (see docs/airgap.md)
 containerd_release_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}"
 containerd_tarball: "containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+
+# Private registry (Harbor) mirroring all upstream registries via
+# pull-through proxy-cache projects named after each upstream host
+# (see docs/airgap.md). Set to "" to disable mirroring.
+containerd_registry_mirror_host: "harbor.kubeops.local"
+containerd_registry_mirrors:
+  - docker.io
+  - quay.io
+  - registry.k8s.io
+  - ghcr.io

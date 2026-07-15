@@ -43,6 +43,11 @@
       ansible.builtin.import_role:
         name: common
 
+    # Node firewall: default drop, only 443 admitted from outside
+    - name: Include firewall role
+      ansible.builtin.import_role:
+        name: firewall
+
     # Container runtime tasks
     - name: Include containerd role
       ansible.builtin.import_role:

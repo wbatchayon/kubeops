@@ -102,13 +102,16 @@ encryption:
   enabled: true
   type: wireguard
 
-# Enable node port
+# NodePort service handling: required by kubeProxyReplacement and by the
+# Gateway's service exposure; external access to node ports is blocked by
+# the node firewall (only 443 is admitted — see the Ansible firewall role)
 nodePort:
   enabled: true
 
-# Enable host port
+# hostPort disabled: no workload may bind ports directly on the nodes;
+# all external traffic enters through the Gateway (443)
 hostPort:
-  enabled: true
+  enabled: false
 
 # L7 load balancing
 loadBalancer:

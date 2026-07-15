@@ -9,8 +9,8 @@ metadata:
 spec:
   project: kubeops
   sources:
-    # kube-prometheus-stack Helm chart, values pulled from the git repo via the $values ref
-    - repoURL: https://prometheus-community.github.io/helm-charts
+    # kube-prometheus-stack chart served from Harbor (seeded, see docs/airgap.md)
+    - repoURL: harbor.kubeops.local/charts
       chart: kube-prometheus-stack
       targetRevision: 55.5.0
       helm:

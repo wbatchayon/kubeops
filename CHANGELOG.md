@@ -16,6 +16,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `kubeops` CLI (init, deploy, destroy, status, validate, secrets, app)
 - CI pipeline (lint, build, test, security scan, packaging)
 - Community health files (LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY)
+- Harbor private registry (Argo CD app) used as pull-through proxy cache
+  for every upstream registry and as OCI Helm chart repository
+- cert-manager (Argo CD app, Gateway API support) with the internal
+  `kubeops-ca` ClusterIssuer
+- Node firewall role (nftables, default drop: only 443 admitted from
+  outside the cluster/admin networks)
+- containerd registry mirrors through Harbor and internal CA trust
+  distribution on the nodes
+- Air-gapped deployment guide (docs/airgap.md)
+
+### Changed
+
+- Secrets management standardized on OpenBao (the Linux Foundation fork of
+  HashiCorp Vault, MPL-2.0) so the whole stack remains open source
+- Argo CD chart sources moved from public repositories to Harbor
+  (`harbor.kubeops.local/charts`) for air-gapped operation
+- Kubernetes package repository and containerd download URLs are now
+  Ansible variables, so they can point at internal mirrors
+- Gateway certificates issued by the internal PKI (`kubeops-ca`) instead
+  of Let's Encrypt (ACME is unreachable in airgap)
 
 ### Security
 
@@ -24,13 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - App-of-apps no longer auto-prunes child applications
 - Workload base chart defaults to non-root, read-only root filesystem
 - Cilium WireGuard encryption enabled; agent capabilities reduced to upstream defaults
-- Vault policy scoped (no engine mounts, restricted Kubernetes auth roles)
+- OpenBao policy scoped (no engine mounts, restricted Kubernetes auth roles)
 - kubeadm join tokens and certificate keys excluded from Ansible logs (no_log)
 - SSH host-key verification enabled (accept-new with pinned known_hosts)
 - CI: least-privilege workflow token, third-party action pinned to commit SHA
 - containerd systemd unit vendored instead of downloaded at run time
-- .gitignore hardened (tfvars, SSH private keys, Vault tokens)
-- HTTP traffic on the Gateway redirected to HTTPS
+- .gitignore hardened (tfvars, SSH private keys, OpenBao tokens)
+- Gateway exposes HTTPS (443) only — the HTTP listener was removed
+  entirely, and Cilium hostPort is disabled
 
 ### Fixed
 

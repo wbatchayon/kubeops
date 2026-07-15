@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-The following versions of KubeOps are currently supported with security updates:
+KubeOps has no tagged release yet. Until v0.1.0 is published, security fixes
+land on the `main` branch only:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| `main`  | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
@@ -36,7 +36,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 ### Deployment
 
 - Always use SSH keys instead of passwords for node access
-- Use Vault for secret management
+- Use OpenBao for secret management
 - Enable network policies with Cilium
 - Use TLS for all communications
 - Keep Kubernetes and all components up to date
@@ -50,9 +50,11 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 ### Network Security
 
+- Only 443/HTTPS is exposed externally: the Gateway has a single HTTPS
+  listener and the node firewall (nftables, default drop) blocks
+  everything else — see [Air-Gapped Deployment](airgap.md)
 - Enable network policies
-- Use Cilium for pod-to-pod encryption
-- Implement zero-trust networking
+- Use Cilium for pod-to-pod encryption (WireGuard)
 - Monitor network traffic
 
 ### Monitoring
@@ -74,7 +76,7 @@ We will publish security advisories on:
 ### Data at Rest
 
 - Terraform state files should be encrypted
-- Use Vault for sensitive data storage
+- Use OpenBao for sensitive data storage
 - Enable disk encryption on VMs
 
 ### Data in Transit
@@ -95,12 +97,11 @@ Note: Compliance validation is the responsibility of the operator.
 
 ## Security Tools
 
-The project uses the following security tools:
+The CI pipeline runs the following security tooling on every push and pull
+request:
 
-- [Trivy](https://github.com/aquasecurity/trivy) - Vulnerability scanner
-- [Checkov](https://github.com/bridgecrewio/checkov) - Terraform scanning
-- [Ansible Lint](https://github.com/ansible/ansible-lint) - Ansible security checks
-- [Kubesec](https://github.com/controlplaneio/kubesec) - K8s security scanning
+- [Trivy](https://github.com/aquasecurity/trivy) - Filesystem vulnerability scan, results uploaded to GitHub code scanning
+- [Ansible Lint](https://github.com/ansible/ansible-lint) - Ansible best-practice and security checks
 
 ## Thank You
 

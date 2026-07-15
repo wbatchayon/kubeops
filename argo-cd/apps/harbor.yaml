@@ -1,0 +1,39 @@
+# Argo CD Application: Harbor private registry / proxy cache
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: kubeops
+  sources:
+    # Harbor Helm chart, served by Harbor's own chart project once seeded.
+    # The very first install is done from the bastion (see docs/airgap.md);
+    # Argo CD adopts and manages it from then on.
+    - repoURL: harbor.kubeops.local/charts
+      chart: harbor
+      targetRevision: 1.14.2
+      helm:
+        valueFiles:
+          - $values/harbor/base/values.yaml
+    # Values and the HTTPRoute exposing Harbor through the Gateway
+    - repoURL: https://github.com/wbatchayon/kubeops.git
+      targetRevision: main
+      ref: values
+      path: harbor/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: harbor
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        # Grants access to the Gateway's HTTPS listener (namespace selector)
+        gateway-access: "true"

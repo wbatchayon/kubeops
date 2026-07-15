@@ -71,7 +71,7 @@
 
 - name: Add Kubernetes apt repository key (Debian)
   ansible.builtin.get_url:
-    url: "https://pkgs.k8s.io/core:/stable:/v{{ common_kubernetes_repo_version }}/deb/Release.key"
+    url: "{{ common_kubernetes_repo_base_url }}/core:/stable:/v{{ common_kubernetes_repo_version }}/deb/Release.key"
     dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
     mode: '0644'
   when: ansible_os_family == "Debian"
@@ -80,7 +80,7 @@
   ansible.builtin.apt_repository:
     repo: >-
       deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc]
-      https://pkgs.k8s.io/core:/stable:/v{{ common_kubernetes_repo_version }}/deb/ /
+      {{ common_kubernetes_repo_base_url }}/core:/stable:/v{{ common_kubernetes_repo_version }}/deb/ /
     state: present
   when: ansible_os_family == "Debian"
 
@@ -88,9 +88,11 @@
   ansible.builtin.yum_repository:
     name: kubernetes
     description: Kubernetes
-    baseurl: "https://pkgs.k8s.io/core:/stable:/v{{ common_kubernetes_repo_version }}/rpm/"
+    baseurl: "{{ common_kubernetes_repo_base_url }}/core:/stable:/v{{ common_kubernetes_repo_version }}/rpm/"
     gpgkey:
-      - "https://pkgs.k8s.io/core:/stable:/v{{ common_kubernetes_repo_version }}/rpm/repodata/repomd.xml.key"
+      - >-
+        {{ common_kubernetes_repo_base_url }}/core:/stable:/v{{
+        common_kubernetes_repo_version }}/rpm/repodata/repomd.xml.key
     gpgcheck: true
     enabled: true
   when: ansible_os_family == "RedHat"
@@ -130,3 +132,25 @@
     name: kubelet
     state: started
     enabled: true
+
+# Internal PKI trust: containerd validates the Harbor mirror's TLS
+# certificate against the node trust store (airgap mode)
+- name: Install internal CA certificate (Debian)
+  ansible.builtin.copy:
+    content: "{{ common_internal_ca_cert }}"
+    dest: /usr/local/share/ca-certificates/kubeops-ca.crt
+    mode: '0644'
+  when:
+    - ansible_os_family == "Debian"
+    - common_internal_ca_cert | length > 0
+  notify: Update CA trust store (Debian)
+
+- name: Install internal CA certificate (RHEL)
+  ansible.builtin.copy:
+    content: "{{ common_internal_ca_cert }}"
+    dest: /etc/pki/ca-trust/source/anchors/kubeops-ca.crt
+    mode: '0644'
+  when:
+    - ansible_os_family == "RedHat"
+    - common_internal_ca_cert | length > 0
+  notify: Update CA trust store (RHEL)

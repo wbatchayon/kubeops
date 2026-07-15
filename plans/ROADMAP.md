@@ -14,16 +14,17 @@ The blockers that prevent a first successful deployment today.
   manifests need either real committed values per environment or a
   render step (kustomize overlays or `clusterctl generate --from`).
 - [ ] **Create the out-of-band secrets** and document them in the runbook:
-  `grafana-admin` (monitoring namespace) and
+  `grafana-admin` (monitoring), `harbor-admin` (harbor),
+  `kubeops-ca-root` (cert-manager, from the OpenBao PKI intermediate) and
   `${CLUSTER_NAME}-proxmox-credentials` (Cluster API).
 - [ ] **Add a control-plane VIP.** The kubeadm HA flow currently uses the
   first control plane's address as `controlPlaneEndpoint`, which is a
   single point of failure. Deploy kube-vip (static pod) or an external
   HAProxy, then set `control_plane_endpoint` in the kubeadm role defaults.
-- [ ] **Deploy cert-manager.** The Gateway references the
-  `letsencrypt-prod` ClusterIssuer but nothing installs cert-manager.
-  Add an Argo CD child app (with `--enable-gateway-api`) and the
-  ClusterIssuer manifest.
+- [ ] **Seed Harbor and validate the airgap path.** The manifests exist
+  (`harbor/`, containerd mirrors, `docs/airgap.md`); run the seeding
+  procedure end to end: proxy-cache projects, chart pushes, bootstrap
+  image preload, package mirror.
 - [ ] **Clarify the provisioning story.** Terraform+Ansible and Cluster API
   currently overlap. Recommended split: Terraform+Ansible bootstraps the
   management cluster; Cluster API (CAPMOX) manages workload clusters from
@@ -52,10 +53,14 @@ The `kubeops` commands are scaffolding (they print what they would do).
 
 ## Phase 3 — Platform features
 
-- [ ] **Vault deployment.** The policy exists but Vault itself is not
-  installed. Add an Argo CD child app (official chart), initialization
-  runbook, and External Secrets Operator to consume it (replaces the
-  manual `grafana-admin` secret from Phase 1).
+- [ ] **OpenBao deployment.** The policy exists (`openbao/policies/`) but
+  OpenBao itself is not installed. Add an Argo CD child app (official
+  `openbao` chart), initialization runbook (including the PKI engine that
+  backs the `kubeops-ca` issuer), and External Secrets Operator to consume
+  it (replaces the manual `grafana-admin` secret from Phase 1).
+- [ ] **Internal git mirror.** The Argo CD applications still pull from
+  GitHub; a fully air-gapped cluster needs an in-perimeter git server
+  (e.g. Gitea) as the GitOps source of truth.
 - [ ] **Alerting.** Alertmanager routes/receivers (email or webhook) and a
   starter set of PrometheusRules; Grafana dashboards provisioned from git
   (the dashboard provider is already configured).

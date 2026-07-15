@@ -1,0 +1,35 @@
+# cert-manager Helm Chart Values
+
+installCRDs: true
+
+# Gateway API support: required so Certificates can be issued for the
+# kubeops Gateway's HTTPS listener (cert-manager.io/cluster-issuer
+# annotation on the Gateway)
+extraArgs:
+  - --enable-gateway-api
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+webhook:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+
+cainjector:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

@@ -94,18 +94,19 @@ configs:
   # SSH known hosts (will be managed externally)
   knownHosts:
   
-  # Repository credentials
-  repositories: []
-  
+  # Repository credentials. Harbor serves every Helm chart as OCI
+  # (airgap: no public chart repository is reachable — see docs/airgap.md)
+  repositories:
+    harbor-charts:
+      name: harbor-charts
+      url: harbor.kubeops.local/charts
+      type: helm
+      enableOCI: "true"
+
   # TLS configuration
   tls:
     # Custom CA certificates
     ca: ""
-  
+
   # Resource tracking
   resourceTrackingMethod: annotation
-  resourceHealthChecks:
-    # yamllint disable rule:line-length
-    - url: https://raw.githubusercontent.com/argoproj/argo-workflows/master/pkg/apis/workflow/v1alpha1/workflow-task-result.yaml
-    - url: https://raw.githubusercontent.com/argoproj/argo-workflows/master/pkg/apis/workflow/v1alpha1/workflow-template.yaml
-    # yamllint enable rule:line-length

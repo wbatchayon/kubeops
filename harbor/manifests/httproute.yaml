@@ -1,0 +1,19 @@
+# Expose Harbor through the kubeops Gateway (HTTPS 443 only).
+# The harbor namespace carries the gateway-access: "true" label
+# (set by Argo CD managedNamespaceMetadata) required by the listener.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: harbor
+  namespace: harbor
+spec:
+  parentRefs:
+    - name: kubeops-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - harbor.kubeops.local
+  rules:
+    - backendRefs:
+        - name: harbor
+          port: 80

@@ -1,0 +1,22 @@
+---
+# Default variables for the firewall role
+#
+# Ingress policy on every node: default drop. Only the flows below are
+# admitted, enforcing the "only 443 from outside" rule (see docs/airgap.md).
+
+# Network the cluster nodes live on (node-to-node traffic: etcd, kubelet,
+# Cilium VXLAN/WireGuard, Kubernetes API)
+firewall_node_cidr: "192.168.1.0/24"
+
+# Pod network (pods reach the Kubernetes API through the service VIP,
+# which DNATs to a node address)
+firewall_pod_cidr: "{{ pod_network_cidr | default('10.244.0.0/16') }}"
+
+# Administration network allowed to reach SSH (22) and the Kubernetes API
+# (6443). Defaults to the node network; restrict it to a bastion/VPN range
+# in production.
+firewall_admin_cidr: "{{ firewall_node_cidr }}"
+
+# Ports open to any source: the Gateway's HTTPS listener only
+firewall_public_tcp_ports:
+  - 443

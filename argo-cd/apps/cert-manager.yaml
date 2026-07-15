@@ -1,30 +1,33 @@
-# Argo CD Application: Cilium CNI
+# Argo CD Application: cert-manager (internal PKI)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cilium
+  name: cert-manager
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: kubeops
   sources:
-    # Cilium chart served from Harbor (seeded, see docs/airgap.md)
+    # cert-manager Helm chart, seeded into Harbor (see docs/airgap.md)
     - repoURL: harbor.kubeops.local/charts
-      chart: cilium
-      targetRevision: 1.14.5
+      chart: cert-manager
+      targetRevision: v1.13.6
       helm:
         valueFiles:
-          - $values/cilium/base/values.yaml
+          - $values/cert-manager/base/values.yaml
+    # Values and the kubeops-ca ClusterIssuer
     - repoURL: https://github.com/wbatchayon/kubeops.git
       targetRevision: main
       ref: values
+      path: cert-manager/manifests
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: cert-manager
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
+      - CreateNamespace=true
       - ServerSideApply=true
