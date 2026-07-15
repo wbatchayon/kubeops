@@ -168,7 +168,11 @@ argocd-apps:
 	kubectl apply -f argo-cd/applications/
 
 # Validation targets
-validate-all: validate-terraform validate-ansible validate-yaml
+validate-all: validate-terraform validate-ansible validate-yaml validate-airgap
+
+validate-airgap:
+	@echo "$(BLUE)Checking air-gap compliance...$(NC)"
+	./scripts/airgap-guard.sh
 
 validate-terraform:
 	@echo "$(BLUE)Validating Terraform...$(NC)"
@@ -185,14 +189,19 @@ validate-yaml:
 # CI/CD targets
 ci: check test validate-all build
 
-# Release target
-release: build-all
+# Release targets — the real release is done by the tag-triggered
+# .github/workflows/release.yaml; these are for local use
+release:
 	@if [ "$(VERSION)" = "dev" ]; then \
 		echo "$(RED)No git tag found; tag a release (git tag vX.Y.Z) before running make release$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(GREEN)Creating release for $(VERSION)$(NC)"
-	gh release create $(VERSION) --title $(VERSION) bin/*
+	@command -v goreleaser >/dev/null || { echo "$(RED)goreleaser is required$(NC)"; exit 1; }
+	goreleaser release --clean
+
+release-snapshot:
+	@command -v goreleaser >/dev/null || { echo "$(RED)goreleaser is required$(NC)"; exit 1; }
+	goreleaser release --snapshot --clean --skip=docker,publish
 
 # Help target
 help:
@@ -233,6 +242,9 @@ help:
 	@echo "  argocd-apps      - Deploy Argo CD applications"
 	@echo ""
 	@echo "  validate-all     - Run all validations"
+	@echo "  validate-airgap  - Check air-gap compliance (no external sources, 443 only)"
+	@echo "  release          - Run goreleaser locally (tag required)"
+	@echo "  release-snapshot - Dry-run release build without publishing"
 	@echo "  ci               - Run CI pipeline"
 	@echo "  release          - Create release"
 	@echo ""
