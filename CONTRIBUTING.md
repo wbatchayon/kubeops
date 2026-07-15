@@ -78,11 +78,23 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 ## Pull Request Process
 
-1. Update documentation for any changes
-2. Add tests for new features
-3. Ensure all tests pass
-4. Update the CHANGELOG.md
-5. Request review from maintainers
+1. For significant changes, open an issue first (bug report or feature
+   request template) so the approach can be discussed before you invest
+   time in it
+2. Fill in the pull request template; keep one PR focused on one concern
+3. Update documentation for any changes
+4. Add tests for new features
+5. Ensure the CI passes — all stages, including the airgap guard
+   (`make validate-all` and `make test` reproduce the main gates locally)
+6. Update the CHANGELOG.md under `[Unreleased]`
+7. Review is requested automatically from the code owners
+   (`.github/CODEOWNERS`); address feedback with follow-up commits, they
+   are squashed on merge with a Conventional Commit title
+
+The `main` branch is protected: direct pushes are reserved to the
+maintainers, and a pull request can only be merged with an approving
+code-owner review, all CI checks green (airgap guard included), every
+conversation resolved, and a linear history (squash merge only).
 
 ## Coding Standards
 
@@ -99,20 +111,28 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 ## Reporting Bugs
 
-1. Check existing issues
-2. Create a new issue with:
-   - Clear description
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Environment details
+1. Check existing issues first
+2. Open a new issue using the **Bug Report** template (description, steps
+   to reproduce, expected vs actual behavior, environment details)
+3. Security vulnerabilities must **not** be reported in public issues —
+   follow [docs/SECURITY.md](docs/SECURITY.md) instead
 
 ## Feature Requests
 
-1. Search existing issues
-2. Create an issue with:
-   - Clear description
-   - Use cases
-   - Proposed solution
+1. Search existing issues first
+2. Open a new issue using the **Feature Request** template (problem,
+   proposed solution, use cases)
+
+## Releases (maintainers)
+
+1. Move the `[Unreleased]` CHANGELOG entries under a new `[X.Y.Z]` section
+   with the date
+2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+3. The [Release workflow](.github/workflows/release.yaml) does the rest:
+   GitHub Release with multi-platform binaries and sha256 checksums
+   (GoReleaser), container image on `ghcr.io/wbatchayon/kubeops`, and the
+   base Helm chart pushed to `oci://ghcr.io/wbatchayon/charts`
+4. Dry-run locally with `make release-snapshot`
 
 ## License
 

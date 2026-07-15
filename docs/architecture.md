@@ -54,6 +54,29 @@ KubeOps is a Kubernetes cluster deployment tool for Proxmox using Infrastructure
 | Dashboards | Grafana | Visualization |
 | Alerts | AlertManager | Notification |
 
+## Deployment Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant GH as GitHub Actions
+    participant TF as Terraform
+    participant A as Ansible
+    participant P as Proxmox
+    participant K as Kubernetes
+    participant AC as Argo CD
+
+    U->>GH: Push changes
+    GH->>GH: Validate (lint, airgap guard, helm, tests)
+    U->>TF: terraform apply
+    TF->>P: Create VMs
+    U->>A: ansible-playbook bootstrap
+    A->>P: Configure nodes (containerd, kubeadm, firewall)
+    A->>K: Install Kubernetes
+    U->>K: Install Argo CD
+    AC->>K: Reconcile applications (via Harbor)
+```
+
 ## Repository Layout
 
 ```
@@ -75,7 +98,7 @@ kubeops/
 ├── monitoring/          # Prometheus/Grafana configuration
 ├── openbao/             # OpenBao policies
 ├── pkg/                 # Go packages
-├── plans/               # Design documents and roadmap
+├── plans/               # Project roadmap
 ├── terraform/           # Proxmox infrastructure
 │   ├── environments/    # Per-environment configurations
 │   └── modules/         # compute, network, storage modules
