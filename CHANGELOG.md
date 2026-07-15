@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- End-to-end deployment guide (docs/deployment.md): Terraform → Ansible →
+  Cilium → Argo CD handover, out-of-band secrets, verification steps
+
+### Fixed
+
+- configuration.md now matches the code: correct top-level CLI config
+  keys, real Terraform variable names (via terraform.tfvars.example), and
+  the Ansible inventory variables that matter
+- README quick start and the CLI reference no longer present the
+  scaffolding CLI as functional; they point to the deployment guide
+
 ## [0.1.0] - 2026-07-15
 
 ### Added

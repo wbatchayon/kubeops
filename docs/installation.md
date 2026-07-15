@@ -69,4 +69,4 @@ kubeops --help
 ## Next Steps
 
 - [Configuration](configuration.md)
-- [CLI Reference](cli-reference.md)
+- [Deployment](deployment.md)

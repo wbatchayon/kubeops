@@ -2,6 +2,12 @@
 
 Complete reference for KubeOps CLI commands.
 
+> **Status (v0.1.x):** the commands below are scaffolding — they parse
+> flags and print the actions they will perform, but do not execute them
+> yet (implementation tracked in the
+> [roadmap](../plans/ROADMAP.md), Phase 2). To deploy a cluster today,
+> follow the [deployment guide](deployment.md).
+
 ## Global Options
 
 ```bash

@@ -29,9 +29,10 @@ The blockers that prevent a first successful deployment today.
   currently overlap. Recommended split: Terraform+Ansible bootstraps the
   management cluster; Cluster API (CAPMOX) manages workload clusters from
   it. Document the decision in docs/architecture.md.
-- [ ] **Write the end-to-end runbook**: Proxmox template creation →
-  `terraform apply` → `ansible-playbook bootstrap` → Argo CD install →
-  root app apply, with verification steps at each stage.
+- [x] **Write the end-to-end runbook** (docs/deployment.md): Proxmox
+  template → `terraform apply` → `ansible-playbook bootstrap` → Cilium →
+  Argo CD install → root app apply, with verification steps. Remaining:
+  validate it end to end on real hardware.
 
 ## Phase 2 — Implement the CLI
 

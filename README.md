@@ -10,15 +10,26 @@
 ## Quick Start
 
 ```bash
-# Install CLI
-go install github.com/wbatchayon/kubeops/cmd/kubeops@latest
+git clone https://github.com/wbatchayon/kubeops.git
+cd kubeops
 
-# Initialize cluster
-kubeops init --name mycluster --kubernetes-version v1.28.0
+# 1. Provision the VMs on Proxmox
+cd terraform/environments/dev
+cp terraform.tfvars.example terraform.tfvars   # edit, then:
+terraform init && terraform apply
 
-# Deploy
-kubeops deploy
+# 2. Configure the nodes and bootstrap Kubernetes
+cd ../../../ansible
+ansible-playbook -i inventory/hosts.yaml playbooks/bootstrap.yaml
+
+# 3. Install Cilium + Argo CD, then GitOps takes over
+# -> follow docs/deployment.md for the complete procedure
 ```
+
+The full walkthrough — including the GitOps handover, secrets, and
+verification steps — is in the [deployment guide](docs/deployment.md).
+The `kubeops` CLI that will orchestrate these steps is
+[in progress](plans/ROADMAP.md).
 
 ## Features
 
@@ -37,6 +48,7 @@ See [docs/](docs/) for detailed documentation:
 - [Architecture](docs/architecture.md)
 - [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
+- [Deployment Guide](docs/deployment.md)
 - [Air-Gapped Deployment](docs/airgap.md)
 - [CLI Reference](docs/cli-reference.md)
 - [CI/CD Pipeline](docs/cicd.md)
