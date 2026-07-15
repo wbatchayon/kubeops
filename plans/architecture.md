@@ -1,9 +1,14 @@
 # KubeOps Architecture Design
 
+> **Status:** initial design document, kept for historical reference. The
+> up-to-date documentation lives in [docs/](../docs/) — see
+> [Architecture](../docs/architecture.md) and
+> [CI/CD Pipeline](../docs/cicd.md).
+
 ## 1. Project Overview
 
 **Project Name:** KubeOps  
-**Purpose:** Deploy a production-ready Kubernetes cluster on Proxmox using Infrastructure as Code, GitOps, and GitOps principles.  
+**Purpose:** Deploy a production-ready Kubernetes cluster on Proxmox using Infrastructure as Code and GitOps principles.  
 **Primary Language:** Go (v1.21+)  
 **Target Environment:** Proxmox Virtual Environment (VE)
 
@@ -23,147 +28,7 @@
 | Monitoring | Prometheus + Grafana | Latest |
 | Programming Language | Go | v1.21+ |
 
-## 3. High-Level Architecture
-
-```mermaid
-flowchart TB
-    subgraph "GitOps Repository"
-        A[Git Repository] --> B[GitHub Actions CI/CD]
-        B --> C[Terraform Plan/Apply]
-        B --> D[Ansible Playbooks]
-        B --> E[Cluster API]
-    end
-    
-    subgraph "Proxmox Infrastructure"
-        F[Proxmox VE] --> G[Control Plane Nodes]
-        F --> H[Worker Nodes]
-        F --> I[Load Balancer VM]
-    end
-    
-    subgraph "Kubernetes Cluster"
-        G --> J[Cilium CNI]
-        J --> K[Argo CD]
-        K --> L[Helm Charts]
-        K --> M[Gateway API]
-        L --> N[Application Deployments]
-    end
-    
-    subgraph "Security"
-        O[Vault] -.->|Secrets| K
-        O -.->|Certificates| J
-    end
-    
-    subgraph "Observability"
-        P[Prometheus] --> Q[Grafana]
-        J -->|Metrics| P
-        N -->|Metrics| P
-    end
-```
-
-## 4. Directory Structure
-
-```
-kubeops/
-├── .github/
-│   └── workflows/
-│       ├── ci.yaml
-│       ├── cd.yaml
-│       ├── e2e.yaml
-│       └── security.yaml
-├── ansible/
-│   ├── playbooks/
-│   │   ├── bootstrap.yaml
-│   │   ├── prerequisites.yaml
-│   │   └── post-kubeconfig.yaml
-│   ├── roles/
-│   │   ├── common/
-│   │   ├── containerd/
-│   │   ├── kubeadm/
-│   │   └── kubeconfig/
-│   ├── inventory/
-│   │   └── inventory.yaml.tpl
-│   └── ansible.cfg
-├── terraform/
-│   ├── modules/
-│   │   ├── network/
-│   │   ├── compute/
-│   │   └── storage/
-│   ├── environments/
-│   │   ├── dev/
-│   │   └── prod/
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── cluster-api/
-│   ├── bases/
-│   │   ├── cluster.yaml
-│   │   ├── kcp.yaml
-│   │   └── md.yaml
-│   ├── overlays/
-│   │   ├── dev/
-│   │   └── prod/
-│   └── providers/
-│       ├── infrastructure/
-│       │   └── proxmox/
-│       └── control-plane/
-│           └── kubeadm/
-├── cilium/
-│   ├── base/
-│   │   └── values.yaml
-│   └── overlays/
-│       ├── dev/
-│       └── prod/
-├── vault/
-│   ├── policies/
-│   │   ├── kubeops-policy.hcl
-│   │   └── app-policy.hcl
-│   └── scripts/
-│       └── init-vault.sh
-├── argo-cd/
-│   ├── base/
-│   │   └── values.yaml
-│   ├── applications/
-│   │   ├── monitoring.yaml
-│   │   ├── gateway-api.yaml
-│   │   └── apps.yaml
-│   └── projects/
-│       └── kubeops-project.yaml
-├── helm-charts/
-│   ├── base-chart/
-│   └── application-charts/
-├── gateway-api/
-│   ├── gateway.yaml
-│   ├── httproute.yaml
-│   └── grpcroute.yaml
-├── monitoring/
-│   ├── prometheus/
-│   │   ├── values.yaml
-│   │   └── rules/
-│   └── grafana/
-│       ├── values.yaml
-│       └── dashboards/
-├── cmd/
-│   └── kubeops/
-│       ├── main.go
-│       └── internal/
-├── pkg/
-│   ├── terraform/
-│   ├── ansible/
-│   ├── cluster/
-│   ├── vault/
-│   └── config/
-├── api/
-│   └── v1alpha1/
-├── test/
-│   ├── e2e/
-│   └── integration/
-├── Makefile
-├── go.mod
-├── go.sum
-└── README.md
-```
-
-## 5. CI/CD Pipeline Stages
+## 3. CI/CD Pipeline Stages
 
 ```mermaid
 flowchart LR
@@ -195,9 +60,9 @@ flowchart LR
 11. **Monitor**: Verify metrics, alerts, logs
 12. **Feedback**: Collect metrics, generate reports
 
-## 6. Component Details
+## 4. Component Details
 
-### 6.1 Terraform Modules
+### 4.1 Terraform Modules
 
 | Module | Purpose |
 |--------|---------|
@@ -205,7 +70,7 @@ flowchart LR
 | `network` | VLAN, bridge, firewall configuration |
 | `storage` | Ceph/RBD or local storage provisioner |
 
-### 6.2 Ansible Roles
+### 4.2 Ansible Roles
 
 | Role | Purpose |
 |------|---------|
@@ -214,14 +79,14 @@ flowchart LR
 | `kubeadm` | Kubernetes components installation |
 | `kubeconfig` | Distribute kubeconfig from control plane |
 
-### 6.3 Cluster API Resources
+### 4.3 Cluster API Resources
 
 - **Cluster**: Defines cluster scope
 - **KubeadmControlPlane**: Control plane management
 - **MachineDeployment**: Worker node groups
 - **ProxmoxMachineTemplate**: Node specifications
 
-### 6.4 Go CLI Commands (kubeops)
+### 4.4 Go CLI Commands (kubeops)
 
 ```go
 // Planned commands
@@ -235,7 +100,7 @@ kubeops validate      // Run validation checks
 kubeops version       // Show version
 ```
 
-## 7. Deployment Workflow
+## 5. Deployment Workflow
 
 ```mermaid
 sequenceDiagram
@@ -259,7 +124,7 @@ sequenceDiagram
     AC->>K: Deploy applications
 ```
 
-## 8. Security Considerations
+## 6. Security Considerations
 
 - **Secrets**: All secrets stored in Vault, injected via CSI Provider
 - **Network**: Cilium Network Policies for pod-to-pod isolation
@@ -267,7 +132,7 @@ sequenceDiagram
 - **Certificates**: cert-manager for TLS certificate management
 - **Scan**: Trivy for container image scanning, Checkov for IaC
 
-## 9. Monitoring Stack
+## 7. Monitoring Stack
 
 - **Prometheus**: Metrics collection
 - **Grafana**: Visualization and dashboards
@@ -275,7 +140,7 @@ sequenceDiagram
 - **Loki**: Log aggregation (optional)
 - **Exporters**: node-exporter, kube-state-metrics, cilium-metrics
 
-## 10. Implementation Priority
+## 8. Implementation Priority
 
 1. Project scaffolding (Go module, Makefile)
 2. Terraform modules for Proxmox
@@ -291,7 +156,7 @@ sequenceDiagram
 12. Go CLI implementation
 13. Tests
 
-## 11. Estimated Milestones
+## 9. Estimated Milestones
 
 - **M1**: Infrastructure provisioning (Terraform + Ansible)
 - **M2**: Kubernetes cluster deployment (CAPI)

@@ -57,7 +57,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](do
 
 4. Commit your changes:
    ```bash
-   git commit -m "Add your feature or fix"
+   git commit -m "feat: add your feature"
    ```
 
 5. Push to your fork:
@@ -69,8 +69,11 @@ By participating in this project, you agree to abide by our [Code of Conduct](do
 
 ## Commit Message Guidelines
 
+This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+
+- Format: `<type>(<optional scope>): <description>` — e.g. `fix(ansible): pin containerd version`
+- Common types: `feat`, `fix`, `docs`, `ci`, `refactor`, `test`, `chore`
 - Use clear, descriptive commit messages
-- Start with a verb (Add, Fix, Update, Remove)
 - Reference issues using `#issue-number`
 
 ## Pull Request Process

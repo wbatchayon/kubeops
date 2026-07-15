@@ -30,25 +30,10 @@ sudo mv bin/kubeops /usr/local/bin/
 go install github.com/wbatchayon/kubeops/cmd/kubeops@latest
 ```
 
-### Using Homebrew
-
-```bash
-brew install kubeops
-```
-
-### Using Binaries
-
-```bash
-# Linux
-curl -L https://github.com/wbatchayon/kubeops/releases/latest/download/kubeops-linux-amd64 -o kubeops
-chmod +x kubeops
-sudo mv kubeops /usr/local/bin/
-
-# macOS
-curl -L https://github.com/wbatchayon/kubeops/releases/latest/download/kubeops-darwin-amd64 -o kubeops
-chmod +x kubeops
-sudo mv kubeops /usr/local/bin/
-```
+> **Note:** Pre-built release binaries and a Homebrew formula will be
+> provided with the first tagged release (see the
+> [roadmap](../plans/ROADMAP.md)). Until then, install from source or with
+> `go install`.
 
 ## Verify Installation
 
