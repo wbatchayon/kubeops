@@ -1,0 +1,82 @@
+# GoReleaser configuration — run by .github/workflows/release.yaml on tags.
+# Local dry-run: make release-snapshot
+version: 2
+
+project_name: kubeops
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: kubeops
+    main: ./cmd/kubeops
+    binary: kubeops
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    # Same variables the Makefile injects
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+
+archives:
+  - name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+# Container image published to GitHub Packages (GHCR). linux/amd64 only for
+# now: the binaries already cover arm64, and a single-arch build avoids the
+# qemu/buildx machinery in CI.
+dockers:
+  - image_templates:
+      - ghcr.io/wbatchayon/kubeops:{{ .Version }}
+      - ghcr.io/wbatchayon/kubeops:latest
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.source=https://github.com/wbatchayon/kubeops
+      - --label=org.opencontainers.image.licenses=Apache-2.0
+
+changelog:
+  use: github
+  groups:
+    - title: Features
+      regexp: '^feat'
+      order: 0
+    - title: Fixes
+      regexp: '^fix'
+      order: 1
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - '^docs'
+      - '^ci'
+      - '^chore'
+      - '^test'
+
+release:
+  prerelease: auto
+  footer: |
+    **Full changelog**: [CHANGELOG.md](https://github.com/wbatchayon/kubeops/blob/main/CHANGELOG.md)

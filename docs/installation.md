@@ -30,10 +30,30 @@ sudo mv bin/kubeops /usr/local/bin/
 go install github.com/wbatchayon/kubeops/cmd/kubeops@latest
 ```
 
-> **Note:** Pre-built release binaries and a Homebrew formula will be
-> provided with the first tagged release (see the
-> [roadmap](../plans/ROADMAP.md)). Until then, install from source or with
-> `go install`.
+### Using Release Binaries
+
+Each tagged release ships binaries for Linux, macOS, and Windows
+(amd64/arm64) with a `checksums.txt` (sha256):
+
+```bash
+curl -LO https://github.com/wbatchayon/kubeops/releases/latest/download/kubeops-linux-amd64.tar.gz
+curl -LO https://github.com/wbatchayon/kubeops/releases/latest/download/checksums.txt
+sha256sum --check --ignore-missing checksums.txt
+tar -xzf kubeops-linux-amd64.tar.gz
+sudo mv kubeops /usr/local/bin/
+```
+
+### Using the Container Image
+
+The CLI is also published to GitHub Packages:
+
+```bash
+docker run --rm ghcr.io/wbatchayon/kubeops:latest version
+```
+
+> **Note:** the first tagged release (v0.1.0) is still pending — see the
+> [roadmap](../plans/ROADMAP.md). Until it is published, install from
+> source or with `go install`.
 
 ## Verify Installation
 

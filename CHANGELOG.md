@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - containerd registry mirrors through Harbor and internal CA trust
   distribution on the nodes
 - Air-gapped deployment guide (docs/airgap.md)
+- CI airgap guard (`scripts/airgap-guard.sh`, also `make validate-airgap`):
+  fails when an external Argo CD source, a plain HTTP listener, or an ACME
+  issuer is reintroduced
+- CI Helm/manifest validation: `helm lint`, vendor charts rendered against
+  the committed values, kubeconform on the raw manifests
+- Issue template chooser config: blank issues disabled, security reports
+  routed to private advisories, questions to Discussions
+- Release automation: GoReleaser (multi-platform binaries, sha256
+  checksums) driven by a tag-triggered workflow that also publishes the
+  container image to ghcr.io and the base Helm chart as OCI
 
 ### Changed
 
@@ -36,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Ansible variables, so they can point at internal mirrors
 - Gateway certificates issued by the internal PKI (`kubeops-ca`) instead
   of Let's Encrypt (ACME is unreachable in airgap)
+- Initial design document (plans/architecture.md) folded into
+  docs/architecture.md; plans/ now only carries the roadmap
 
 ### Security
 
@@ -48,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - kubeadm join tokens and certificate keys excluded from Ansible logs (no_log)
 - SSH host-key verification enabled (accept-new with pinned known_hosts)
 - CI: least-privilege workflow token, third-party action pinned to commit SHA
+- main branch protected: PR-only merges gated on a code-owner review,
+  green CI (airgap guard included), and linear history (squash only)
 - containerd systemd unit vendored instead of downloaded at run time
 - .gitignore hardened (tfvars, SSH private keys, OpenBao tokens)
 - Gateway exposes HTTPS (443) only — the HTTP listener was removed

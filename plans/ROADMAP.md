@@ -47,9 +47,12 @@ The `kubeops` commands are scaffolding (they print what they would do).
   app health); implement `--json-output` and `--watch`.
 - [ ] Integration tests under `test/integration` (build-tagged), then
   remove the CI/Makefile skip guards.
-- [ ] Release automation: goreleaser config + a tag-triggered release
-  workflow; publish checksums. Either publish a Homebrew tap or remove
-  the `brew install` section from the installation docs.
+- [ ] Self-hosted runner inside the perimeter for the Deploy Test and
+  Monitoring stages: GitHub-hosted runners cannot reach an air-gapped
+  cluster.
+- [x] Release automation: goreleaser config + tag-triggered release
+  workflow with checksums, GHCR image, and OCI Helm chart. Remaining:
+  optionally publish a Homebrew tap once releases exist.
 
 ## Phase 3 — Platform features
 
